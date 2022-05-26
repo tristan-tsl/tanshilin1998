@@ -1,0 +1,14 @@
+---
+# 存储 for yapi-mongodb
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: yapi-mongodb
+  namespace: doc
+spec:
+  storageClassName: rook-ceph-block
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi

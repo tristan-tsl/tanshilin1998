@@ -1,0 +1,50 @@
+---
+# 存储
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: devops-test-itest-mysql
+  namespace: devops-test
+spec:
+  capacity:
+    storage: 100Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /k8slpv/devops/test/itest-mysql
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - 192.168.90.12
+---
+# 存储
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: devops-test-itest-jmeter
+  namespace: devops-test
+spec:
+  capacity:
+    storage: 100Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /k8slpv/devops/test/itest-jmeter
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - 192.168.90.12

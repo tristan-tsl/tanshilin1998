@@ -1,0 +1,207 @@
+apiVersion: clickhouse.altinity.com/v1
+kind: ClickHouseInstallation
+metadata:
+  name: yc-ck
+spec:
+  configuration:
+    clusters:
+    - layout:
+        replicasCount: 2
+        shardsCount: 7
+      name: replcluster
+    profiles:
+      clickhouse_operator/http_connection_timeout: "60"
+      clickhouse_operator/log_queries: "1"
+      clickhouse_operator/skip_unavailable_shards: "1"
+      default/allow_experimental_map_type: "1"
+      default/allow_experimental_window_functions: "1"
+      default/background_fetches_pool_size: "8"
+      default/background_pool_size: "16"
+      default/background_schedule_pool_size: "32"
+      default/default_database_engine: Atomic
+      default/distributed_ddl_task_timeout: "300"
+      default/distributed_directory_monitor_batch_inserts: "1"
+      default/insert_quorum: "2"
+      default/insert_quorum_parallel: "1"
+      default/max_memory_usage: "21474836480"
+      default/mutations_sync: "1"
+      default/select_sequential_consistency: "0"
+      default/max_threads: "59"
+    settings:
+      disable_internal_dns_cache: "1"
+      keep_alive_timeout: "1800"
+      max_connections: "8192"
+      max_concurrent_queries: "300"
+      max_server_memory_usage: "235149459456"
+      max_table_size_to_drop: "0"
+      merge_tree/max_delay_to_insert: "2"
+      merge_tree/max_suspicious_broken_parts: "10"
+      merge_tree/parts_to_delay_insert: "300"
+      merge_tree/parts_to_throw_insert: "600"
+      merge_tree/use_minimalistic_part_header_in_zookeeper: "1"
+      storage_configuration/disks/disk2/path: "/var/lib/clickhouse2/"
+      storage_configuration/disks/disk3/path: "/var/lib/clickhouse3/"
+      storage_configuration/disks/disk2/keep_free_space_bytes: 524288000
+      storage_configuration/disks/disk3/keep_free_space_bytes: 524288000
+      storage_configuration/disks/default/keep_free_space_bytes: 524288000
+      #storage_configuration/policies/default/volumes/default/disk: default
+      #storage_configuration/policies/default/volumes/default/disk: disk2
+      #storage_configuration/policies/default/volumes/default/disk: disk3
+    users:
+      clickhouse_operator/access_management: "1"
+      clickhouse_operator/password_sha256_hex: 716b36073a90c6fe1d445ac1af85f4777c5b7a155cea359961826a030513e448
+      clickhouse_operator/profile: clickhouse_operator
+      clickhouse_operator/quota: default
+      default/access_management: "1"
+    files:
+      storage.xml: |
+        <yandex>
+            <storage_configuration>
+                <disks>
+                    <default>
+                        <keep_free_space_bytes>524288000</keep_free_space_bytes>
+                    </default>
+                    <disk2>
+                        <keep_free_space_bytes>524288000</keep_free_space_bytes>
+                        <path>/var/lib/clickhouse2/</path>
+                    </disk2>
+                    <disk3>
+                        <keep_free_space_bytes>524288000</keep_free_space_bytes>
+                        <path>/var/lib/clickhouse3/</path>
+                    </disk3>
+                </disks>
+                <policies>
+                    <default>
+                        <volumes>
+                            <default>
+                                <disk>disk3</disk>
+                                <disk>disk2</disk>
+                                <disk>default</disk>
+                            </default>
+                        </volumes>
+                    </default>
+                </policies>
+            </storage_configuration>
+        </yandex>        
+      zookeeper.xml: |
+        <yandex>
+          <zookeeper>
+              <node>
+                  <host>clickhouse-zookeeper-0.clickhouse-zookeeper-headless</host>
+                  <port>2181</port>
+              </node>
+              <node>
+                  <host>clickhouse-zookeeper-1.clickhouse-zookeeper-headless</host>
+                  <port>2181</port>
+              </node>
+              <node>
+                  <host>clickhouse-zookeeper-2.clickhouse-zookeeper-headless</host>
+                  <port>2181</port>
+              </node>
+          </zookeeper>
+          <auxiliary_zookeepers>
+              <zookeeper-0>
+                  <node>
+                      <host>clickhouse-zookeeper-0.clickhouse-zookeeper-headless</host>
+                      <port>2181</port>
+                  </node>
+                  <node>
+                      <host>clickhouse-zookeeper-0.clickhouse-zookeeper-headless</host>
+                      <port>2181</port>
+                  </node>
+                  <node>
+                      <host>clickhouse-zookeeper-0.clickhouse-zookeeper-headless</host>
+                      <port>2181</port>
+                  </node>
+              </zookeeper-0>
+              <zookeeper-1>
+                  <node>
+                      <host>clickhouse-zookeeper-0.clickhouse-zookeeper-headless.multi-zk</host>
+                      <port>2181</port>
+                  </node>
+                  <node>
+                      <host>clickhouse-zookeeper-0.clickhouse-zookeeper-headless.multi-zk</host>
+                      <port>2181</port>
+                  </node>
+                  <node>
+                      <host>clickhouse-zookeeper-0.clickhouse-zookeeper-headless.multi-zk</host>
+                      <port>2181</port>
+                  </node>
+              </zookeeper-1>
+          </auxiliary_zookeepers>
+        </yandex>
+  defaults:
+    templates:
+      podTemplate: pod-template-with-volume
+  templates:
+    podTemplates:
+    - name: pod-template-with-volume
+      spec:
+        nodeSelector:
+          "clickhouse-server": "true"
+        securityContext:
+          runAsUser: 101
+          runAsGroup: 101
+          fsGroup: 101
+        containers:
+        - image: clickhouse/clickhouse-server:22.3.2.2
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /ping
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 70
+            periodSeconds: 3
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: clickhouse-pod
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /ping
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 3
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: "60"
+              memory: 220Gi
+            requests:
+              cpu: "60"
+              memory: 220Gi
+          volumeMounts:
+          - mountPath: /var/lib/clickhouse
+            name: data-storage-default
+          - mountPath: /var/lib/clickhouse2
+            name: data-storage-disk2
+          - mountPath: /var/lib/clickhouse3
+            name: data-storage-disk3
+    volumeClaimTemplates:
+    - name: data-storage-default
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1000Gi
+        storageClassName: cbs-csi-topo-prepaid
+    - name: data-storage-disk2
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1000Gi
+        storageClassName: cbs-csi-topo-prepaid
+    - name: data-storage-disk3
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1000Gi
+        storageClassName: cbs-csi-topo-prepaid

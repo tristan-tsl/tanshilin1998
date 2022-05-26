@@ -1,0 +1,70 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: executor-executor-logging-loki-ruler
+  namespace: wjh-prod
+data:
+  application.yaml: |
+    # #############################告警配置
+    # 钉钉webhook配置
+    dingding_webhook_access_token:
+      - 
+    # loki的基础查询地址
+    loki_base_uri: "http://loki.logging.:3100"
+    # #############################用户
+    # 用户组及用户
+    # 用户信息: 用户码: 用户名称-手机号码
+    user_info:
+      t: 谭-1
+    # 用户关注服务
+    user_follow_service:
+      t:
+        - m
+    # #############################服务
+    # 服务列表, 确保每个服务都有人关注
+    #  p
+    tasks:
+      realtime:
+        job:
+          logql: count_over_time({job="service_log",replicaset!="oss-api-mq-switch"}|="\"severity\":\"ERROR\""  !="ErrorCodeException"!="BusinessException"!="com.wjh.tidb.syncer.consumer.DataSyncConsumerServiceImpl"!="nacos"!="slow sql"!="404"!="Target object must not be null"!="Your request params is invalid" [5m])
+          query_time_range: "rel: 5m-0m"
+        trigger:
+          cron: "*/1 * * * *"
+        alarm:
+          is_at: True
+          maximum_tolerance_count: 5 #at人的最大容忍次数
+          total_template: "在{query_start_time}~{query_end_time}发现{damage_service_count}个异常服务, 持续{damage_time_duration}"
+          head_template: "| 服务名称 | 异常次数 | 异常时间 | 项目关注人 |\n\n| -------- | -------- | -------- | ---------- |\n\n"
+          template: "|[{service_name}]({query_service_url})|{service_count}次|{damage_time_duration}|{follow_of_users}|"
+          loki_click_base_prefix: "http://grafana-loki./explore?orgId=1&left="
+          loki_click_base_url: '["{QUERY_FROM_TIME}","{QUERY_TO_TIME}","Loki",{"expr":"{job=\"service_log\",replicaset=\"{SERVICE_NAME}\"}|=\"\\\"severity\\\":\\\"ERROR\\\"\"  !=\"ErrorCodeException\"!=\"BusinessException\"!=\"com.wjh.tidb.syncer.consumer.DataSyncConsumerServiceImpl\"!=\"nacos\"!=\"slow sql\"!=\"404\"!=\"Target object must not be null\"!=\"Your request params is invalid\""}]'
+      fixedtime:
+        job:
+          logql: count_over_time({job="service_log",replicaset!="oss-api-mq-switch"}|="\"severity\":\"ERROR\""  !="ErrorCodeException"!="BusinessException"!="com.wjh.tidb.syncer.consumer.DataSyncConsumerServiceImpl"!="nacos"!="slow sql"!="404"!="Target object must not be null"!="Your request params is invalid" [5m])
+          query_time_range: "fix: h0-h24"
+        trigger:
+          cron: "0 10,14,18 * * *"
+        alarm:
+          is_at: True
+          maximum_tolerance_count: 0 #at人的最大容忍次数
+          total_template: "在{query_start_time}~{query_end_time}发现{damage_service_count}个异常服务, 持续{damage_time_duration}"
+          head_template: "| 服务名称 | 异常次数 | 异常时间 | 项目关注人 |\n\n| -------- | -------- | -------- | ---------- |\n\n"
+          template: "|[{service_name}]({query_service_url})|{service_count}次|{damage_time_duration}|{follow_of_users}|"
+          loki_click_base_prefix: "http://grafana-loki./explore?orgId=1&left="
+          loki_click_base_url: '["{QUERY_FROM_TIME}","{QUERY_TO_TIME}","Loki",{"expr":"{job=\"service_log\",replicaset=\"{SERVICE_NAME}\"}|=\"\\\"severity\\\":\\\"ERROR\\\"\"  !=\"ErrorCodeException\"!=\"BusinessException\"!=\"com.wjh.tidb.syncer.consumer.DataSyncConsumerServiceImpl\"!=\"nacos\"!=\"slow sql\"!=\"404\"!=\"Target object must not be null\"!=\"Your request params is invalid\""}]'
+      realtime_middleware: # 中间件监控
+        job:
+          logql: count_over_time({job="middleware"}|~"ERROR|Exception" [5m])
+          query_time_range: "rel: 5m-0m"
+        trigger:
+          cron: "*/1 * * * *"
+        alarm:
+          is_at: True
+          maximum_tolerance_count: 0 #at人的最大容忍次数
+          total_template: "在{query_start_time}~{query_end_time}发现{damage_service_count}个异常服务, 持续{damage_time_duration}"
+          head_template: "| 服务名称 | 异常次数 | 异常时间 | 项目关注人 |\n\n| -------- | -------- | -------- | ---------- |\n\n"
+          template: "|[{service_name}]({query_service_url})|{service_count}次|{damage_time_duration}|{follow_of_users}|"
+          loki_click_base_prefix: "http://grafana-loki./explore?orgId=1&left="
+          loki_click_base_url: '["{QUERY_FROM_TIME}","{QUERY_TO_TIME}","Loki",{"expr":"{job=\"middleware\",replicaset=\"{SERVICE_NAME}\"}|~\"ERROR|Exception\""}]'
+

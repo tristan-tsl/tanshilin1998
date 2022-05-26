@@ -1,0 +1,94 @@
+#---
+## 配置文件
+#apiVersion: v1
+#kind: ConfigMap
+#metadata:
+#  name: mysql
+#  namespace: dev
+#data:
+#  mysql.cnf: |
+#    [mysql]
+#    [mysqld]
+#    log-bin=binlog
+#    server-id=1
+---
+# 内部域名
+apiVersion: v1
+kind: Service
+metadata:
+  name: nacos-mysql
+  namespace: dev
+spec:
+  selector:
+    app: nacos-mysql
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3306
+---
+# 服务
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nacos-mysql
+  namespace: dev
+  labels:
+    app: nacos-mysql
+spec:
+  serviceName: nacos-mysql
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nacos-mysql
+  template:
+    metadata:
+      labels:
+        app: nacos-mysql
+    spec:
+      containers:
+        - name: nacos-mysql
+          image: ctr-registry.local./ops/mysql:8.0.26
+          imagePullPolicy: IfNotPresent
+          args:
+            - --character-set-server=utf8mb4
+            - --collation-server=utf8mb4_unicode_ci
+          ports:
+            - containerPort: 3306
+          livenessProbe:
+            tcpSocket:
+              port: 3306
+            failureThreshold: 60
+            periodSeconds: 5
+            initialDelaySeconds: 60
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+            - name: MYSQL_ROOT_PASSWORD
+              value: 4jmuKrVZ5mfktpx00w5g
+            - name: MYSQL_DATABASE
+              value: nacos
+            - name: MYSQL_USER
+              value: nacos
+            - name: MYSQL_PASSWORD
+              value: AtnYyDFkWnm2XgMRUFic
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: nacos-mysql
+          #          - mountPath: /etc/mysql/conf.d/mysql.cnf
+          #            name: mysql-config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 1Gi
+              ephemeral-storage: 10Gi
+            limits:
+              cpu: 2000m
+              memory: 5Gi
+              ephemeral-storage: 10Gi
+      volumes:
+        - name: nacos-mysql
+          persistentVolumeClaim:
+            claimName: nacos-mysql
+#        - name: mysql-config
+#          configMap:
+#            name: nacos-mysql

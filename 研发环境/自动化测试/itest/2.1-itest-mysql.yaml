@@ -1,0 +1,135 @@
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: itest-mysql
+  namespace: devops-test
+spec:
+  storageClassName: local-storage
+  volumeName: devops-test-itest-mysql
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+---
+# 内部域名
+apiVersion: v1
+kind: Service
+metadata:
+#  注意这里需要调整兼容
+  name: itest-mysql-server
+#  name: itest-mysql
+  namespace: devops-test
+spec:
+  selector:
+    app: itest-mysql
+  ports:
+    - name: for-3306
+      port: 3306
+      targetPort: 3306
+#  type: LoadBalancer
+---
+# 配置文件
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: itest-mysql
+  namespace: devops-test
+data:
+  mysql.cnf: |
+    [mysqld]
+    init-connect = 'SET NAMES utf8'
+    character-set-server = utf8
+    #
+    # Remove leading # and set to the amount of RAM for the most important data
+    # cache in MySQL. Start at 70% of total RAM for dedicated server, else 10%.
+    # innodb_buffer_pool_size = 128M
+    #
+    # Remove leading # to turn on a very important data integrity option: logging
+    # changes to the binary log between backups.
+    # log_bin
+    #
+    # Remove leading # to set options mainly useful for reporting servers.
+    # The server defaults are faster for transactions and fast SELECTs.
+    # Adjust sizes as needed, experiment to find the optimal values.
+    # join_buffer_size = 128M
+    # sort_buffer_size = 2M
+    # read_rnd_buffer_size = 2M
+    basedir=/var/lib/mysql
+    datadir=/var/lib/mysql/data
+    socket=/var/lib/mysql/data/mysql.sock
+    lc-messages-dir=/usr/share/mysql
+
+    # Disabling symbolic-links is recommended to prevent assorted security risks
+    symbolic-links=0
+
+    log-error=/var/log/mysql/mysqld.log
+    pid-file=/run/mysql/mysqld.pid
+    lower_case_table_names=1
+    # ql_mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
+    sql_mode=NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
+    user=mysql
+    explicit_defaults_for_timestamp=true
+
+
+
+---
+# 服务
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: itest-mysql
+  namespace: devops-test
+  labels:
+    app: itest-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: itest-mysql
+  template:
+    metadata:
+      labels:
+        app: itest-mysql
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: mysql
+          image: registry.cn-shenzhen.aliyuncs.com/iitest/mysql:5.7.4
+          imagePullPolicy: IfNotPresent
+          #          args:
+          #            - --character-set-server=utf8mb4
+          #            - --collation-server=utf8mb4_unicode_ci
+          ports:
+            - containerPort: 3306
+              #        livenessProbe:
+              #          tcpSocket:
+              #            port: 3306
+              #          failureThreshold: 10
+              #          periodSeconds: 60
+              #          initialDelaySeconds: 10
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: itest-mysql
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: 5000m
+              memory: 5000Mi
+              ephemeral-storage: 10Gi
+      volumes:
+        - name: itest-mysql
+          persistentVolumeClaim:
+            claimName: itest-mysql
+        - name: mysql-config
+          configMap:
+            name: itest-mysql

@@ -1,0 +1,80 @@
+---
+# 内部域名
+apiVersion: v1
+kind: Service
+metadata:
+  #  注意这里需要调整兼容
+  name: jmeter
+#  name: jmeter
+  namespace: devops-test
+spec:
+  selector:
+    app: itest-jmeter
+  ports:
+    - name: for-8080
+      port: 8080
+      targetPort: 8080
+  type: LoadBalancer
+---
+# 服务
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: itest-jmeter
+  namespace: devops-test
+  labels:
+    app: itest-jmeter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: itest-jmeter
+  template:
+    metadata:
+      labels:
+        app: itest-jmeter
+    spec:
+      restartPolicy: Always
+      initContainers:
+        - name: wait-mysql
+          image: busybox:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              set -ex
+              until nc -zv itest-mysql-server 3306; do sleep 5; done
+              sleep 10
+      containers:
+        - name: itest-jmeter
+          image: registry.cn-shenzhen.aliyuncs.com/iitest/jmeter:10.1.4
+          imagePullPolicy: IfNotPresent
+#          command: [ "sh", "-c", "tar -xvf  /usr/local/tomcat/webapps/jmeter/jmeter/apache-jmeter-jre.tar.gz  -C  /usr/local/tomcat/webapps/jmeter/jmeter/"]
+          ports:
+            - containerPort: 8080
+              #        livenessProbe:
+              #          tcpSocket:
+              #            port: 8080
+              #          failureThreshold: 10
+              #          periodSeconds: 60
+              #          initialDelaySeconds: 10
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: 5000m
+              memory: 5000Mi
+              ephemeral-storage: 10Gi
+          volumeMounts:
+            - mountPath: /usr/local/tomcat/webapps/jmeter/jmeter/apache-jmeter-jre
+              name: itest-jmeter
+      volumes:
+        - name: itest-jmeter
+          persistentVolumeClaim:
+            claimName: itest-jmeter

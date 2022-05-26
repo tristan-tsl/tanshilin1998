@@ -1,0 +1,168 @@
+---
+# 配置文件
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis
+  namespace: dev
+data:
+  redis.conf: |
+    bind 0.0.0.0
+    protected-mode no
+    port 6379
+    # requirepass ""
+    # pidfile redis.pid
+    # logfile redis.log
+    dir /data
+    # slaveof 192.168.90.16 31887
+    # min-slaves-to-write 1
+    # min-slaves-max-lag 1
+    appendonly yes
+    appendfilename appendonly.aof
+    appendfsync everysec
+    tcp-backlog 511
+    timeout 0
+    tcp-keepalive 300
+    supervised no
+    loglevel notice
+    databases 16
+    save 900 1
+    save 300 10
+    save 60 10000
+    stop-writes-on-bgsave-error yes
+    rdbcompression yes
+    rdbchecksum yes
+    dbfilename "dump.rdb"
+    slave-serve-stale-data yes
+    slave-read-only yes
+    repl-diskless-sync no
+    repl-diskless-sync-delay 5
+    repl-disable-tcp-nodelay no
+    slave-priority 100
+    no-appendfsync-on-rewrite no
+    auto-aof-rewrite-percentage 100
+    auto-aof-rewrite-min-size 64mb
+    aof-load-truncated yes
+    lua-time-limit 5000
+    slowlog-log-slower-than 10000
+    slowlog-max-len 128
+    latency-monitor-threshold 100
+    notify-keyspace-events ""
+    hash-max-ziplist-entries 512
+    hash-max-ziplist-value 64
+    list-max-ziplist-size -2
+    list-compress-depth 0
+    set-max-intset-entries 512
+    zset-max-ziplist-entries 128
+    zset-max-ziplist-value 64
+    hll-sparse-max-bytes 3000
+    activerehashing yes
+    client-output-buffer-limit normal 0 0 0
+    client-output-buffer-limit slave 256mb 64mb 60
+    client-output-buffer-limit pubsub 32mb 8mb 60
+    hz 10
+    aof-rewrite-incremental-fsync yes
+    lazyfree-lazy-eviction yes
+    lazyfree-lazy-expire yes
+    lazyfree-lazy-server-del yes
+    slave-lazy-flush yes
+    no-appendfsync-on-rewrite yes
+    activedefrag yes
+    active-defrag-threshold-lower 10
+    active-defrag-threshold-upper 100
+    active-defrag-cycle-min 1
+    active-defrag-cycle-max 25
+    active-defrag-max-scan-fields 1000
+
+---
+# 内部域名
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: dev
+spec:
+  selector:
+    app: redis
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 6379
+---
+# 服务
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+  namespace: dev
+  labels:
+    app: redis
+spec:
+  serviceName: redis
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      initContainers:
+        - name: setsysctl
+          command:
+            - sh
+            - -c
+            - echo 20000 > /proc/sys/net/core/somaxconn
+          image: busybox:1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+      containers:
+        - name: redis
+          image: ctr-registry.local./ops/redis:6.2.6
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - "redis-server /usr/local/etc/redis/redis.conf"
+          ports:
+            - containerPort: 6379
+          #        livenessProbe:
+          #          tcpSocket:
+          #            port: 6379
+          #          failureThreshold: 10
+          #          periodSeconds: 60
+          #          initialDelaySeconds: 10
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+          volumeMounts:
+            - mountPath: /data
+              name: redis
+            - mountPath: /usr/local/etc/redis
+              name: conf-redis
+          resources:
+            requests:
+              cpu: 1000m
+              memory: 1Gi
+              ephemeral-storage: 10Gi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+              ephemeral-storage: 10Gi
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - sh
+                  - -c
+                  - "redis-cli save"
+      volumes:
+        - name: redis
+          persistentVolumeClaim:
+            claimName: redis
+        - name: conf-redis
+          configMap:
+            name: redis
+      terminationGracePeriodSeconds: 30

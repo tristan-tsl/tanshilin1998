@@ -1,0 +1,15 @@
+---
+# Source: jumpserver/templates/core/configmap-core.yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: jumpserver-jms-core
+  labels:
+    app.kubernetes.io/name: jumpserver
+    helm.sh/chart: jumpserver-0.1.0
+    app.kubernetes.io/instance: jumpserver
+    app.kubernetes.io/version: "v2.15.4"
+    app.kubernetes.io/managed-by: Helm
+    app.jumpserver.org/name: jms-core
+data:
+  config.yml: ""

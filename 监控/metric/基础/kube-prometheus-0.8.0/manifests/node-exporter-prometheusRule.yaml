@@ -1,0 +1,289 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app.kubernetes.io/component: exporter
+    app.kubernetes.io/name: node-exporter
+    app.kubernetes.io/part-of: kube-prometheus
+    app.kubernetes.io/version: 1.1.2
+    prometheus: k8s
+    role: alert-rules
+  name: node-exporter-rules
+  namespace: monitoring
+spec:
+  groups:
+  - name: node-exporter
+    rules:
+#  自定义
+    - alert: NodeCPU
+      annotations:
+        description: 'CPU使用大于80%(目前使用:{{$value}}%) ({{$labels.instance}}-{{$labels.nodename}})'
+        summary: 过高
+      expr: |
+        (
+          100-(avg(irate(node_cpu_seconds_total{mode="idle"}[5m])) by(instance)* 100) > 80
+        )
+      for: 1m
+      labels:
+        severity: critical
+    - alert: NodeMemory
+      annotations:
+        description: '当前使用率{{ $value }}% ({{$labels.instance}}-{{$labels.nodename}})'
+        summary: 过高
+      expr: |
+        (
+          round(100- node_memory_MemAvailable_bytes/node_memory_MemTotal_bytes*100) > 85
+        )
+      for: 1m
+      labels:
+        severity: critical
+    - alert: NodeFilesystemSpaceFillingUp
+      annotations:
+        description: '位于 {{ $labels.instance }} 的 {{ $labels.device }} 上的文件系统只剩下 {{ printf "%.2f" $value }}% 可用空间并且正在填满。'
+        summary: '预计文件系统将在接下来的 24 小时内耗尽空间。'
+      expr: |
+        (
+          node_filesystem_avail_bytes{job="node-exporter",fstype!=""} / node_filesystem_size_bytes{job="node-exporter",fstype!=""} * 100 < 40
+        and
+          predict_linear(node_filesystem_avail_bytes{job="node-exporter",fstype!=""}[6h], 24*60*60) < 0
+        and
+          node_filesystem_readonly{job="node-exporter",fstype!=""} == 0
+        )
+      for: 1h
+      labels:
+        severity: warning
+    - alert: NodeFilesystemSpaceFillingUp
+      annotations:
+        description: '位于 {{ $labels.instance }} 的 {{ $labels.device }} 上的文件系统只剩下 {{ printf "%.2f" $value }}% 可用空间并且正在快速填满。'
+        summary: '预计文件系统将在接下来的 4 小时内耗尽空间。'
+      expr: |
+        (
+          node_filesystem_avail_bytes{job="node-exporter",fstype!=""} / node_filesystem_size_bytes{job="node-exporter",fstype!=""} * 100 < 15
+        and
+          predict_linear(node_filesystem_avail_bytes{job="node-exporter",fstype!=""}[6h], 4*60*60) < 0
+        and
+          node_filesystem_readonly{job="node-exporter",fstype!=""} == 0
+        )
+      for: 1h
+      labels:
+        severity: critical
+    - alert: NodeFilesystemAlmostOutOfSpace
+      annotations:
+        description: '位于 {{ $labels.instance }} 的 {{ $labels.device }} 上的文件系统只剩下 {{ printf "%.2f" $value }}% 可用空间。'
+        summary: '文件系统剩余空间不足 5%。'
+      expr: |
+        (
+          node_filesystem_avail_bytes{job="node-exporter",fstype!=""} / node_filesystem_size_bytes{job="node-exporter",fstype!=""} * 100 < 5
+        and
+          node_filesystem_readonly{job="node-exporter",fstype!=""} == 0
+        )
+      for: 1h
+      labels:
+        severity: warning
+    - alert: NodeFilesystemAlmostOutOfSpace
+      annotations:
+        description: '位于 {{ $labels.instance }} 的 {{ $labels.device }} 上的文件系统只剩下 {{ printf "%.2f" $value }}% 可用空间。'
+        summary: '文件系统剩余空间不足 3%。'
+      expr: |
+        (
+          node_filesystem_avail_bytes{job="node-exporter",fstype!=""} / node_filesystem_size_bytes{job="node-exporter",fstype!=""} * 100 < 3
+        and
+          node_filesystem_readonly{job="node-exporter",fstype!=""} == 0
+        )
+      for: 1h
+      labels:
+        severity: critical
+    - alert: NodeFilesystemFilesFillingUp
+      annotations:
+        description: '位于 {{ $labels.instance }} 的 {{ $labels.device }} 上的文件系统只剩下 {{ printf "%.2f" $value }}% 可用的 inode 并且正在填满。'
+        summary: '预计文件系统将在接下来的 24 小时内耗尽 inode。'
+      expr: |
+        (
+          node_filesystem_files_free{job="node-exporter",fstype!=""} / node_filesystem_files{job="node-exporter",fstype!=""} * 100 < 40
+        and
+          predict_linear(node_filesystem_files_free{job="node-exporter",fstype!=""}[6h], 24*60*60) < 0
+        and
+          node_filesystem_readonly{job="node-exporter",fstype!=""} == 0
+        )
+      for: 1h
+      labels:
+        severity: warning
+    - alert: NodeFilesystemFilesFillingUp
+      annotations:
+        description: '{{ $labels.device }} 在 {{ $labels.instance }} 上的文件系统只剩下 {{ printf "%.2f" $value }}% 可用的 inode 并且正在快速填满。'
+        summary: '预计文件系统将在接下来的 4 小时内耗尽 inode。'
+      expr: |
+        (
+          node_filesystem_files_free{job="node-exporter",fstype!=""} / node_filesystem_files{job="node-exporter",fstype!=""} * 100 < 20
+        and
+          predict_linear(node_filesystem_files_free{job="node-exporter",fstype!=""}[6h], 4*60*60) < 0
+        and
+          node_filesystem_readonly{job="node-exporter",fstype!=""} == 0
+        )
+      for: 1h
+      labels:
+        severity: critical
+    - alert: NodeFilesystemAlmostOutOfFiles
+      annotations:
+        description: '位于 {{ $labels.instance }} 的 {{ $labels.device }} 上的文件系统只剩下 {{ printf "%.2f" $value }}% 可用的 inode。'
+        summary: '文件系统还剩下不到 5% 的 inode。'
+      expr: |
+        (
+          node_filesystem_files_free{job="node-exporter",fstype!=""} / node_filesystem_files{job="node-exporter",fstype!=""} * 100 < 5
+        and
+          node_filesystem_readonly{job="node-exporter",fstype!=""} == 0
+        )
+      for: 1h
+      labels:
+        severity: warning
+    - alert: NodeFilesystemAlmostOutOfFiles
+      annotations:
+        description: '位于 {{ $labels.instance }} 的 {{ $labels.device }} 上的文件系统只剩下 {{ printf "%.2f" $value }}% 可用的 inode。'
+        summary: '文件系统还剩下不到 3% 的 inode。'
+      expr: |
+        (
+          node_filesystem_files_free{job="node-exporter",fstype!=""} / node_filesystem_files{job="node-exporter",fstype!=""} * 100 < 3
+        and
+          node_filesystem_readonly{job="node-exporter",fstype!=""} == 0
+        )
+      for: 1h
+      labels:
+        severity: critical
+    - alert: NodeNetworkReceiveErrs
+      annotations:
+        description: '{{ $labels.instance }} interface {{ $labels.device }} 在过去两分钟内遇到了 {{ printf "%.0f" $value }} 接收错误。'
+        summary: 网络接口报告许多接收错误。
+      expr: |
+        rate(node_network_receive_errs_total[2m]) / rate(node_network_receive_packets_total[2m]) > 0.01
+      for: 1h
+      labels:
+        severity: warning
+    - alert: NodeNetworkTransmitErrs
+      annotations:
+        description: '{{ $labels.instance }} interface {{ $labels.device }} 在过去两分钟内遇到了 {{ printf "%.0f" $value }} 传输错误。'
+        summary: 网络接口报告了许多传输错误。
+      expr: |
+        rate(node_network_transmit_errs_total[2m]) / rate(node_network_transmit_packets_total[2m]) > 0.01
+      for: 1h
+      labels:
+        severity: warning
+    - alert: NodeHighNumberConntrackEntriesUsed
+      annotations:
+        description: '{{ $value | humanizePercentage }} 使用了 conntrack 条目。'
+        summary: conntrack 的数量已接近极限。
+      expr: |
+        (node_nf_conntrack_entries / node_nf_conntrack_entries_limit) > 0.75
+      labels:
+        severity: warning
+    - alert: NodeTextFileCollectorScrapeError
+      annotations:
+        description: '节点导出器文本文件收集器未能抓取。'
+        summary: '节点导出器文本文件收集器未能抓取。'
+      expr: |
+        node_textfile_scrape_error{job="node-exporter"} == 1
+      labels:
+        severity: warning
+    - alert: NodeClockSkewDetected
+      annotations:
+        description: '{{ $labels.instance }} 上的时钟不同步超过 300 秒。 确保在此主机上正确配置了 NTP。'
+        summary: '检测到时钟偏差。'
+      expr: |
+        (
+          node_timex_offset_seconds > 0.05
+        and
+          deriv(node_timex_offset_seconds[5m]) >= 0
+        )
+        or
+        (
+          node_timex_offset_seconds < -0.05
+        and
+          deriv(node_timex_offset_seconds[5m]) <= 0
+        )
+      for: 10m
+      labels:
+        severity: warning
+    - alert: NodeClockNotSynchronising
+      annotations:
+        description: '{{ $labels.instance }} 上的时钟不同步。 确保在此主机上配置了 NTP。'
+        summary: '时钟不同步。'
+      expr: |
+        min_over_time(node_timex_sync_status[5m]) == 0
+        and
+        node_timex_maxerror_seconds >= 16
+      for: 10m
+      labels:
+        severity: warning
+    - alert: NodeRAIDDegraded
+      annotations:
+        description: '由于一个或多个磁盘故障，{{ $labels.instance }} 上的 RAID 阵列“{{ $labels.device }}”处于降级状态。 备用驱动器的数量不足以自动修复问题。'
+        summary: 'RAID 阵列已降级'
+      expr: |
+        node_md_disks_required - ignoring (state) (node_md_disks{state="active"}) > 0
+      for: 15m
+      labels:
+        severity: critical
+    - alert: NodeRAIDDiskFailure
+      annotations:
+        description: '{{ $labels.instance }} 上的 RAID 阵列中至少有一个设备出现故障。 阵列 {{ $labels.device }} 需要注意并且可能需要进行磁盘交换。'
+        summary: 'RAID 阵列中的故障设备'
+      expr: |
+        node_md_disks{state="failed"} > 0
+      labels:
+        severity: warning
+  - name: node-exporter.rules
+    rules:
+    - expr: |
+        count without (cpu) (
+          count without (mode) (
+            node_cpu_seconds_total{job="node-exporter"}
+          )
+        )
+      record: instance:node_num_cpu:sum
+    - expr: |
+        1 - avg without (cpu, mode) (
+          rate(node_cpu_seconds_total{job="node-exporter", mode="idle"}[5m])
+        )
+      record: instance:node_cpu_utilisation:rate5m
+    - expr: |
+        (
+          node_load1{job="node-exporter"}
+        /
+          instance:node_num_cpu:sum{job="node-exporter"}
+        )
+      record: instance:node_load1_per_cpu:ratio
+    - expr: |
+        1 - (
+          node_memory_MemAvailable_bytes{job="node-exporter"}
+        /
+          node_memory_MemTotal_bytes{job="node-exporter"}
+        )
+      record: instance:node_memory_utilisation:ratio
+    - expr: |
+        rate(node_vmstat_pgmajfault{job="node-exporter"}[5m])
+      record: instance:node_vmstat_pgmajfault:rate5m
+    - expr: |
+        rate(node_disk_io_time_seconds_total{job="node-exporter", device=~"mmcblk.p.+|nvme.+|rbd.+|sd.+|vd.+|xvd.+|dm-.+|dasd.+"}[5m])
+      record: instance_device:node_disk_io_time_seconds:rate5m
+    - expr: |
+        rate(node_disk_io_time_weighted_seconds_total{job="node-exporter", device=~"mmcblk.p.+|nvme.+|rbd.+|sd.+|vd.+|xvd.+|dm-.+|dasd.+"}[5m])
+      record: instance_device:node_disk_io_time_weighted_seconds:rate5m
+    - expr: |
+        sum without (device) (
+          rate(node_network_receive_bytes_total{job="node-exporter", device!="lo"}[5m])
+        )
+      record: instance:node_network_receive_bytes_excluding_lo:rate5m
+    - expr: |
+        sum without (device) (
+          rate(node_network_transmit_bytes_total{job="node-exporter", device!="lo"}[5m])
+        )
+      record: instance:node_network_transmit_bytes_excluding_lo:rate5m
+    - expr: |
+        sum without (device) (
+          rate(node_network_receive_drop_total{job="node-exporter", device!="lo"}[5m])
+        )
+      record: instance:node_network_receive_drop_excluding_lo:rate5m
+    - expr: |
+        sum without (device) (
+          rate(node_network_transmit_drop_total{job="node-exporter", device!="lo"}[5m])
+        )
+      record: instance:node_network_transmit_drop_excluding_lo:rate5m

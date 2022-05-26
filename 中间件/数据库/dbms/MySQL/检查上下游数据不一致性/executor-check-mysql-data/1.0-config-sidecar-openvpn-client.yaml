@@ -1,0 +1,9 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sidecar-openvpn-client-executor-check-mysql-data
+  namespace: wjh-prod
+data:
+  client.conf: |
+    client

@@ -1,0 +1,183 @@
+# mkdir -p /k8slpv/registry-ctr-habor-registry && chmod 777 /k8slpv/registry-ctr-habor-registry
+# mkdir -p /k8slpv/registry-ctr-habor-chartmuseum && chmod 777 /k8slpv/registry-ctr-habor-chartmuseum
+# mkdir -p /k8slpv/registry-ctr-habor-habor && chmod 777 /k8slpv/registry-ctr-habor-habor
+# mkdir -p /k8slpv/registry-ctr-habor-database && chmod 777 /k8slpv/registry-ctr-habor-database
+# mkdir -p /k8slpv/registry-ctr-habor-redis && chmod 777 /k8slpv/registry-ctr-habor-redis
+# mkdir -p /k8slpv/registry-ctr-habor-trivy && chmod 777 /k8slpv/registry-ctr-habor-trivy
+---
+# 存储
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: registry-ctr-habor-registry
+  namespace: registry-ctr-habor
+spec:
+  capacity:
+    storage: 100Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /k8slpv/registry-ctr-habor-registry
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - 192.168.90.16
+---
+# 存储
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: registry-ctr-habor-chartmuseum
+  namespace: registry-ctr-habor
+spec:
+  capacity:
+    storage: 100Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /k8slpv/registry-ctr-habor-chartmuseum
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - 192.168.90.16
+---
+# 存储
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: registry-ctr-habor-jobservice
+  namespace: registry-ctr-habor
+spec:
+  capacity:
+    storage: 100Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /k8slpv/registry-ctr-habor-jobservice
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - 192.168.90.16
+---
+# 存储
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: registry-ctr-habor-database
+  namespace: registry-ctr-habor
+spec:
+  capacity:
+    storage: 100Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /k8slpv/registry-ctr-habor-database
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - 192.168.90.16
+---
+# 存储
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: registry-ctr-habor-redis
+  namespace: registry-ctr-habor
+spec:
+  capacity:
+    storage: 100Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /k8slpv/registry-ctr-habor-redis
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - 192.168.90.16
+---
+# 存储
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: registry-ctr-habor-trivy
+  namespace: registry-ctr-habor
+spec:
+  capacity:
+    storage: 100Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /k8slpv/registry-ctr-habor-trivy
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - 192.168.90.16
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

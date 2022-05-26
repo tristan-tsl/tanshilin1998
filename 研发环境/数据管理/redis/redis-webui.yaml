@@ -1,0 +1,79 @@
+---
+# 外部网络
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: redis-webui
+  namespace: devops
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/proxy-buffering: "on"
+    nginx.ingress.kubernetes.io/client-body-buffer-size: 100m
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "800k"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "400"
+spec:
+  rules:
+    - host: redis-webui.local.
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: redis-webui
+                port:
+                  number: 80
+---
+# 内部网络
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-webui
+  namespace: devops
+  labels:
+    app.kubernetes.io/name: redis-webui
+spec:
+  selector:
+    app.kubernetes.io/name: redis-webui
+  ports:
+    - name: for-5001
+      port: 80
+      targetPort: 5001
+  type: ClusterIP
+---
+# 服务
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: redis-webui
+  name: redis-webui
+  namespace: devops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis-webui
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: redis-webui
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: redis-webui
+          image: marian/rebrow
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5001
+              name: http
+          resources:
+            requests:
+              cpu: 10m
+              memory: 10Mi
+            limits:
+              cpu: 5000m
+              memory: 5000Mi

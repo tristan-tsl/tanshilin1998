@@ -1,0 +1,90 @@
+---
+# 外部域名
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: livego
+  namespace: dev
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+spec:
+  rules:
+    - host: livego.dev.local.
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: livego
+                port:
+                  number: 80
+---
+# 配置文件
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: livego
+  namespace: dev
+data:
+  livego.yaml: |
+    server:
+    - appname: live
+      live: true
+      hls: true
+      api: true
+      flv: true
+---
+# 服务
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: livego
+  namespace: dev
+  labels:
+    app: livego
+spec:
+  serviceName: livego
+  replicas: 1
+  selector:
+    matchLabels:
+      app: livego
+  template:
+    metadata:
+      labels:
+        app: livego
+    spec:
+      containers:
+        - name: livego
+          image: ctr-registry.local./ops/gwuhaolin/livego
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 1935
+            - containerPort: 7001
+            - containerPort: 7002
+            - containerPort: 8090
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+#          command:
+#            - sh
+#            - -c
+#            - "livego --config_file=config/livego.yaml"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 0.1Gi
+              ephemeral-storage: 10Gi
+            limits:
+              cpu: 9000m
+              memory: 9Gi
+              ephemeral-storage: 100Gi
+#          volumeMounts:
+#            - mountPath: /app/config
+#              name: conf
+#      volumes:
+#        - name: conf
+#          configMap:
+#            name: livego

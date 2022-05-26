@@ -1,0 +1,73 @@
+groups:
+  - name: 主机状态-监控告警
+    rules:
+      - alert: 宿主机-CPU
+        expr: 100-(avg(irate(node_cpu_seconds_total{mode="idle"}[5m])) by(instance)* 100) > 80
+        for: 3m
+        labels:
+          status: 一般告警
+        annotations:
+          summary: "过高"
+          description: "CPU使用大于80%(目前使用:{{$value}}%) ({{$labels.instance}}-{{$labels.nodename}})"
+
+      - alert: 宿主机-内存
+        expr: round(100- node_memory_MemAvailable_bytes/node_memory_MemTotal_bytes{nodename!="monitor-logging-loki"}*100) > 90
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "过高"
+          description: "当前使用率{{ $value }}% ({{$labels.instance}}-{{$labels.nodename}})"
+
+      - alert: 宿主机-IO
+        expr: 500-(avg(irate(node_disk_io_time_seconds_total[1m])) by(instance)* 100) < 60
+        for: 1m
+        labels:
+          status: 严重告警
+        annotations:
+          summary: "过高"
+          description: "流入磁盘IO大于60%(目前使用:{{$value}}) ({{$labels.instance}}-{{$labels.nodename}})"
+
+      - alert: 宿主机-网络
+        expr: ((sum(rate (node_network_receive_bytes_total{device!~'tap.*|veth.*|br.*|docker.*|virbr*|lo*'}[5m])) by (instance)) / 100) > 1024000
+        for: 1m
+        labels:
+          status: 严重告警
+        annotations:
+          summary: "过高"
+          description: "流入网络带宽持续2分钟高于100M. RX带宽使用率{{$value}} ({{$labels.instance}}-{{$labels.nodename}})"
+      - alert: 宿主机-TCP会话
+        expr: node_sockstat_TCP_tw > 55555
+        for: 1m
+        labels:
+          status: 严重告警
+        annotations:
+          summary: "过高"
+          description: "TCP_tw过高, 该服务器上的连接使用过高(目前使用:{{$value}}) ({{$labels.instance}}-{{$labels.nodename}})"
+
+      - alert: 宿主机-磁盘
+        expr: 100-(node_filesystem_free_bytes{fstype=~"ext4|xfs"}/node_filesystem_size_bytes {fstype=~"ext4|xfs"}*100) > 80
+        for: 1m
+        labels:
+          status: 严重告警
+        annotations:
+          summary: "过高"
+          description: "磁盘分区使用大于90%(目前使用:{{$value}}%) ({{$labels.instance}}-{{$labels.nodename}}-{{$labels.mountpoint}}-{{$labels.device}})"
+
+      - alert: 宿主机-磁盘
+        expr: node_filesystem_files_free{fstype="ext4"}/node_filesystem_files{fstype="ext4"}<0.2
+        for: 1m
+        labels:
+          status: 严重告警
+        annotations:
+          summary: "过高"
+          description: "磁盘inode可使用率小于20%(目前使用:{{$value}}) ({{$labels.instance}}-{{$labels.nodename}}-{{$labels.mountpoint}}-{{$labels.device}})"
+
+      - alert: 宿主机-文件描述符
+        expr: node_filefd_allocated{job="node_exporter"}>841779
+        for: 1m
+        labels:
+          status: 严重告警
+        annotations:
+          summary: "过高"
+          description: "文件描述符过高, 该服务器上的文件描述符使用量过高(这会导致网络代理服务异常)(目前使用:{{$value}}) ({{$labels.instance}}-{{$labels.nodename}})"

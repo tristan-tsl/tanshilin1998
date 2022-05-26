@@ -1,0 +1,45 @@
+---
+# 服务
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: executor-monitor-trace-skywalking-alarm
+  namespace: dev
+  labels:
+    app: executor-monitor-trace-skywalking-alarm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: executor-monitor-trace-skywalking-alarm
+  template:
+    metadata:
+      labels:
+        app: executor-monitor-trace-skywalking-alarm
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: executor-monitor-trace-skywalking-alarm
+          image: ctr-registry.local./ops/executor-monitor-trace-skywalking-alarm:0.0.5
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: 5000m
+              memory: 5000Mi
+              ephemeral-storage: 10Gi
+          volumeMounts:
+            - mountPath: /usr/src/app/configs
+              name: conf-executor-monitor-trace-skywalking-alarm
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+      volumes:
+        - name: conf-executor-monitor-trace-skywalking-alarm
+          configMap:
+            name: executor-monitor-trace-skywalking-alarm
+      imagePullSecrets:
+        - name: regcred

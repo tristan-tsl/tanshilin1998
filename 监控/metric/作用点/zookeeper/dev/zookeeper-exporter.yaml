@@ -1,0 +1,15 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/name: zookeeper-1
+  name: zookeeper-exporter-1
+  namespace: dev
+spec:
+  endpoints:
+  - interval: 15s
+    port: for-7070
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: zookeeper-1

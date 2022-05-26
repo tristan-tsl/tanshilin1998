@@ -1,0 +1,25 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: custshop-admin
+    service-app-type: java
+  name: custshop-admin
+  namespace: dev
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 80
+    - name: http1
+      port: 1234
+      protocol: TCP
+      targetPort: 1234
+  selector:
+    app: custshop-admin
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

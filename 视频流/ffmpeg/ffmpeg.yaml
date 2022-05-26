@@ -1,0 +1,42 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ffmpeg
+  namespace: dev
+  labels:
+    app: ffmpeg
+spec:
+  serviceName: "ffmpeg"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ffmpeg
+  template:
+    metadata:
+      labels:
+        app: ffmpeg
+    spec:
+      containers:
+        - name: ffmpeg
+          image: ctr-registry.local./ops/ossrs/srs:4
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              #!/usr/bin/env bash -e
+              nohup /usr/local/srs/objs/ffmpeg/bin/ffmpeg -re -rtsp_transport tcp -i rtsp://admin:a12345678@10.28.3.10:554/Streaming/Channels/102 -c:a copy -c:v libx264 -preset:v fast -tune:v zerolatency -max_delay 100 -f flv -g 5 -b 1024k rtmp://push-live.dev.local.nuoya.info/live/live?auth_key=1638501775-0-0-ca70cd56d435b3e697494913bb1a5860 > ffmpeg.log 2>&1 &
+              tail -f /dev/null
+          env:
+            - name: restart
+              value: "1"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 0.1Gi
+              ephemeral-storage: 10Gi
+            limits:
+              cpu: 9000m
+              memory: 9Gi
+              ephemeral-storage: 100Gi

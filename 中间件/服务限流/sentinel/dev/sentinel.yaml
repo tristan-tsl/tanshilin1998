@@ -1,0 +1,80 @@
+---
+# 外部域名
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sentinel
+  namespace: dev
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+spec:
+  rules:
+    - host: sentinel-flowcontrol.dev.local.
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: sentinel
+                port:
+                  number: 80
+---
+# 内部域名
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentinel
+  namespace: dev
+spec:
+  selector:
+    app: sentinel
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+---
+# 服务
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: dev
+  name: sentinel
+  labels:
+    app: sentinel
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: sentinel
+      labels:
+        app: sentinel
+    spec:
+      containers:
+        - name: sentinel
+          image: ctr-registry.local./ops/sentinel:1.8.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: JAVA_OPTS
+              value: "-Dserver.port=8080 -Dcsp.sentinel.dashboard.server=localhost:8080 -Dproject.name=sentinel-dashboard -Dsentinel.dashboard.auth.username=admin -Dsentinel.dashboard.auth.password=tristan666"
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 45
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: 5000m
+              memory: 5000Mi
+              ephemeral-storage: 10Gi
+      restartPolicy: Always
+
+  selector:
+    matchLabels:
+      app: sentinel

@@ -1,0 +1,22 @@
+---
+# Source: jumpserver/templates/koko/pvc-koko-data.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jumpserver-jms-koko-data
+  labels:
+    app.kubernetes.io/name: jumpserver
+    helm.sh/chart: jumpserver-0.1.0
+    app.kubernetes.io/instance: jumpserver
+    app.kubernetes.io/version: "v2.15.4"
+    app.kubernetes.io/managed-by: Helm
+    app.jumpserver.org/name: jms-koko
+  finalizers:
+    - kubernetes.io/pvc-protection
+spec:
+  accessModes:
+    - "ReadWriteMany"
+  resources:
+    requests:
+      storage: "10Gi"
+  storageClassName: jumpserver-data

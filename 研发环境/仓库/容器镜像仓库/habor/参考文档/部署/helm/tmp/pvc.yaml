@@ -1,0 +1,90 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: registry
+  namespace: registry-ctr-habor
+spec:
+  storageClassName: local-storage
+  volumeName: registry-ctr-habor-registry
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: chartmuseum
+  namespace: registry-ctr-habor
+spec:
+  storageClassName: local-storage
+  volumeName: registry-ctr-habor-chartmuseum
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jobservice
+  namespace: registry-ctr-habor
+spec:
+  storageClassName: local-storage
+  volumeName: registry-ctr-habor-jobservice
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: database
+  namespace: registry-ctr-habor
+spec:
+  storageClassName: local-storage
+  volumeName: registry-ctr-habor-database
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis
+  namespace: registry-ctr-habor
+spec:
+  storageClassName: local-storage
+  volumeName: registry-ctr-habor-redis
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: trivy
+  namespace: registry-ctr-habor
+spec:
+  storageClassName: local-storage
+  volumeName: registry-ctr-habor-trivy
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi

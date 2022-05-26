@@ -1,0 +1,16 @@
+---
+# 内部域名
+apiVersion: v1
+kind: Service
+metadata:
+  name: xxljob-mysql-out
+  namespace: dev
+spec:
+  selector:
+    app: xxljob-mysql
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3306
+      nodePort: 30709
+  type: LoadBalancer

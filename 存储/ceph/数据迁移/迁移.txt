@@ -1,0 +1,25 @@
+-------------------------- registry-verdaccio
+tar -zcvf registry-verdaccio.tar.gz registry-verdaccio
+
+mv registry-verdaccio.tar.gz /k8slpv/registry-verdaccio/
+tar -xzvf registry-verdaccio.tar.gz
+
+\cp -rpf /backup/registry-verdaccio/* /verdaccio/storage/
+
+-------------------------- registry-nexus
+tar -zcvf registry-nexus.tar.gz registry-nexus
+
+mv registry-nexus.tar.gz /k8slpv/registry-nexus/
+tar -xzvf registry-nexus.tar.gz
+
+\cp -rpf /backup/registry-nexus/* /nexus-data/
+
+-------------------------- registry-satisfy
+tar -zcvf registry-satisfy.tar.gz registry-satisfy
+
+mv registry-satisfy.tar.gz /k8slpv/registry-satisfy/
+tar -xzvf registry-satisfy.tar.gz
+
+\cp -rpf /backup/registry-satisfy/composer/* /var/www/.composer/
+\cp -rpf /backup/registry-satisfy/config/* /satisfy/config_tmp/
+\cp -rpf /backup/registry-satisfy/tmp/* /var/tmp/

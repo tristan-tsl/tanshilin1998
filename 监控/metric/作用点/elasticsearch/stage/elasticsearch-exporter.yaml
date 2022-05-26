@@ -1,0 +1,77 @@
+---
+# 服务
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elasticsearch-exporter
+  namespace: stage
+  labels:
+    app.kubernetes.io/name: elasticsearch-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: elasticsearch-exporter
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: elasticsearch-exporter
+    spec:
+      containers:
+        - name: elasticsearch-exporter
+          image: quay.io/prometheuscommunity/elasticsearch-exporter:v1.2.1
+          ports:
+            - containerPort: 9114
+              name: http
+          args:
+            - --es.uri=http://elasticsearch:80
+#          livenessProbe:
+#            httpGet:
+#              path: /health
+#              port: 9114
+#            initialDelaySeconds: 30
+#            timeoutSeconds: 10
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: 500m
+              memory: 1000Mi
+              ephemeral-storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: elasticsearch-exporter
+  name: elasticsearch-exporter
+  namespace: stage
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+  selector:
+    app.kubernetes.io/name: elasticsearch-exporter
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/name: elasticsearch-exporter
+  name: elasticsearch-exporter
+  namespace: stage
+spec:
+  endpoints:
+    - interval: 15s
+      port: http
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: elasticsearch-exporter
+

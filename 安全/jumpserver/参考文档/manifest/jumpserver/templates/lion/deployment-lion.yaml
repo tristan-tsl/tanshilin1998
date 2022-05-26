@@ -1,0 +1,71 @@
+---
+# Source: jumpserver/templates/lion/deployment-lion.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jumpserver-jms-lion
+  labels:
+    app.kubernetes.io/name: jumpserver
+    helm.sh/chart: jumpserver-0.1.0
+    app.kubernetes.io/instance: jumpserver
+    app.kubernetes.io/version: "v2.15.4"
+    app.kubernetes.io/managed-by: Helm
+    app.jumpserver.org/name: jms-lion
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: jumpserver
+      app.kubernetes.io/instance: jumpserver
+      app.jumpserver.org/name: jms-lion
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: jumpserver
+        app.kubernetes.io/instance: jumpserver
+        app.jumpserver.org/name: jms-lion
+    spec:
+      serviceAccountName: default
+      securityContext:
+        {}
+      containers:
+        - name: jms-lion
+          securityContext:
+            {}
+          image: "docker.io/jumpserver/lion:v2.14.2"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: web
+              containerPort: 8081
+              protocol: TCP
+          env:
+            - name: CORE_HOST
+              value: http://jumpserver-jms-core:8080
+            - name: BOOTSTRAP_TOKEN
+              value: ""
+            - name: LOG_LEVEL
+              value: "ERROR"
+            - name: HTTPD_PORT
+              value: "8081"
+            - name: SHARE_ROOM_TYPE
+              value: redis
+            - name: REDIS_HOST
+              value: "localhost"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_PASSWORD
+              value: ""
+          livenessProbe:
+            null
+          readinessProbe:
+            null
+          resources:
+            null
+          volumeMounts:
+            - mountPath: "/opt/lion/data"
+              name: "jms-lion-data"
+      restartPolicy: Always
+      volumes:
+        - persistentVolumeClaim:
+            claimName: 'jumpserver-jms-lion-data'
+          name: "jms-lion-data"

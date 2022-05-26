@@ -1,0 +1,35 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: executor-check-mysql-data
+  namespace: wjh-prod
+data:
+  application.yaml: |
+    table_distribute_merge:
+      "m-wms":
+        - wms
+    maximum_tolerance_count: 100
+    db_mapping:
+      "m-wms": "wms_all"
+    # #############################告警配置
+    # 钉钉webhook配置
+    dingding_webhook_access_token:
+      - 
+    # 关注的用户
+    follow_of_user:
+      - 1
+  "db.yaml": |
+    source:
+      host: 
+      port: 3306
+      user: 
+      password: 
+    target:
+      host: 
+      port: 3306
+      user: 
+      password:
+  "table_define.txt": |
+    auth(10个对象)
+    area

@@ -1,0 +1,27 @@
+---
+# 从镜像中读取文件写入到挂载目录中以完成首次初始化
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: init-image
+  namespace: devops-test-ms
+spec:
+  template:
+    spec:
+      nodeSelector:
+        "kubernetes.io/hostname": 192.168.90.11
+      containers:
+        - name: init-image-data-streaming
+          image: registry.cn-qingdao.aliyuncs.com/metersphere/ms-data-streaming:master
+          imagePullPolicy: IfNotPresent
+          command: [ "sh", "-c", "ls -alh"]
+        - name: init-image-metersphere
+          image: registry.cn-qingdao.aliyuncs.com/metersphere/metersphere:master
+          imagePullPolicy: IfNotPresent
+          command: [ "sh", "-c", "ls -alh"]
+        - name: init-image-mysql
+          image: registry.cn-qingdao.aliyuncs.com/metersphere/mysql:5.7.25
+          imagePullPolicy: IfNotPresent
+          command: [ "sh", "-c", "ls -alh"]
+      restartPolicy: Never
+  backoffLimit: 1

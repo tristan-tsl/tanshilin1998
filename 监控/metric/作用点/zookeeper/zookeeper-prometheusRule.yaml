@@ -1,0 +1,112 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app.kubernetes.io/name: zookeeper
+    prometheus: k8s
+    role: alert-rules
+  name: zookeeper-rules
+  namespace: monitoring
+spec:
+  groups:
+  - name: zookeeper.rules
+    rules:
+    - alert: ZooKeeper server is down
+      annotations:
+        description: zookeeper instance is down {{ $labels }}
+        summary: zookeeper down
+      expr: |
+        up{job=~"zookeeper.*"}==0
+      for: 1m
+      labels:
+        severity: critical
+    - alert: ZooKeeper create too many znodes
+      annotations:
+        description: zookeeper create too many znodes {{ $labels }} ({{ $value }})
+        summary: zookeeper create too many znodes
+      expr: |
+        znode_count > 1000000
+      for: 1m
+      labels:
+        severity: critical
+    - alert: ZooKeeper create too many connections
+      annotations:
+        description: zookeeper create too many connections {{ $labels }} ({{ $value }})
+        summary: zookeeper create too many connections
+      expr: |
+        num_alive_connections > 50
+      for: 1m
+      labels:
+        severity: critical
+    - alert: ZooKeeper znode total occupied memory is too big
+      annotations:
+        description: ZooKeeper znode total occupied memory is too big {{ $labels }} ({{ $value }})
+        summary: ZooKeeper znode total occupied memory is too big
+      expr: |
+        approximate_data_size /1024 /1024 > 1 * 1024
+      for: 1m
+      labels:
+        severity: critical
+    - alert: ZooKeeper set too many watch
+      annotations:
+        description: ZooKeeper set too many watch {{ $labels }} ({{ $value }})
+        summary: ZooKeeper set too many watch
+      expr: |
+        watch_count > 10000
+      for: 1m
+      labels:
+        severity: critical
+    - alert: ZooKeeper a leader election happens
+      annotations:
+        description: ZooKeeper a leader election happens {{ $labels }} ({{ $value }})
+        summary: ZooKeeper a leader election happens
+      expr: |
+        increase(election_time_count[5m]) > 0
+      for: 1m
+      labels:
+        severity: critical
+    - alert: ZooKeeper open too many files
+      annotations:
+        description: ZooKeeper open too many files {{ $labels }} ({{ $value }})
+        summary: ZooKeeper open too many files
+      expr: |
+        open_file_descriptor_count > 300
+      for: 1m
+      labels:
+        severity: critical
+    - alert: ZooKeeper fsync time is too long
+      annotations:
+        description: ZooKeeper fsync time is too long {{ $labels }} ({{ $value }})
+        summary: ZooKeeper fsync time is too long
+      expr: |
+        rate(fsynctime_sum[1m]) > 100
+      for: 1m
+      labels:
+        severity: critical
+    - alert: ZooKeeper take snapshot time is too long
+      annotations:
+        description: ZooKeeper take snapshot time is too long {{ $labels }} ({{ $value }})
+        summary: ZooKeeper take snapshot time is too long
+      expr: |
+        rate(snapshottime_sum[5m]) > 100
+      for: 1m
+      labels:
+        severity: critical
+    - alert: ZooKeeper avg latency is too high
+      annotations:
+        description: ZooKeeper avg latency is too high {{ $labels }} ({{ $value }})
+        summary: ZooKeeper avg latency is too high
+      expr: |
+        avg_latency > 100
+      for: 1m
+      labels:
+        severity: critical
+#    - alert: ZooKeeper JvmMemoryFillingUp
+#      annotations:
+#        description: ZooKeeper JvmMemoryFillingUp {{ $labels }} ({{ $value }})
+#        summary: ZooKeeper JvmMemoryFillingUp
+#      expr: |
+#        jvm_memory_bytes_used / jvm_memory_bytes_max{area="heap"} > 0.8
+#      for: 1m
+#      labels:
+#        severity: critical

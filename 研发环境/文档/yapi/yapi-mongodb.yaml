@@ -1,0 +1,68 @@
+---
+# 内部域名
+apiVersion: v1
+kind: Service
+metadata:
+  name: yapi-mongodb
+  namespace: doc
+spec:
+  selector:
+    app: yapi-mongodb
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 27017
+---
+# 服务
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: yapi-mongodb
+  namespace: doc
+  labels:
+    app: yapi-mongodb
+spec:
+  serviceName: yapi-mongodb
+  replicas: 1
+  selector:
+    matchLabels:
+      app: yapi-mongodb
+  template:
+    metadata:
+      labels:
+        app: yapi-mongodb
+    spec:
+      containers:
+        - name: yapi-mongodb
+          image: ctr-registry.local./ops/mongo:4.4
+          ports:
+            - containerPort: 27017
+          #        livenessProbe:
+          #          tcpSocket:
+          #            port: 27017
+          #          failureThreshold: 10
+          #          periodSeconds: 60
+          #          initialDelaySeconds: 10
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: root
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: ""
+          volumeMounts:
+            - mountPath: /data/db
+              name: yapi-mongodb
+          resources:
+            requests:
+              cpu: 100m
+              memory: 0.1Gi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: 5000m
+              memory: 5Gi
+              ephemeral-storage: 100Gi
+      volumes:
+        - name: yapi-mongodb
+          persistentVolumeClaim:
+            claimName: yapi-mongodb

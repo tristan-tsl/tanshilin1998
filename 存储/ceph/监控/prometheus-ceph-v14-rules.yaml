@@ -1,0 +1,329 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    prometheus: rook-prometheus
+    role: alert-rules
+  name: prometheus-ceph-rules
+  namespace: rook-ceph
+spec:
+  groups:
+  - name: ceph.rules
+    rules:
+    - expr: |
+        kube_node_status_condition{condition="Ready",job="kube-state-metrics",status="true"} * on (node) group_right() max(label_replace(ceph_disk_occupation{job="rook-ceph-mgr"},"node","$1","exported_instance","(.*)")) by (node)
+      record: cluster:ceph_node_down:join_kube
+    - expr: |
+        avg(topk by (ceph_daemon) (1, label_replace(label_replace(ceph_disk_occupation{job="rook-ceph-mgr"}, "instance", "$1", "exported_instance", "(.*)"), "device", "$1", "device", "/dev/(.*)")) * on(instance, device) group_right(ceph_daemon) topk by (instance,device) (1,(irate(node_disk_read_time_seconds_total[1m]) + irate(node_disk_write_time_seconds_total[1m]) / (clamp_min(irate(node_disk_reads_completed_total[1m]), 1) + irate(node_disk_writes_completed_total[1m])))))
+      record: cluster:ceph_disk_latency:join_ceph_node_disk_irate1m
+  - name: telemeter.rules
+    rules:
+    - expr: |
+        count(ceph_osd_metadata{job="rook-ceph-mgr"})
+      record: job:ceph_osd_metadata:count
+    - expr: |
+        count(kube_persistentvolume_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)"})
+      record: job:kube_pv:count
+    - expr: |
+        sum(ceph_pool_rd{job="rook-ceph-mgr"}+ ceph_pool_wr{job="rook-ceph-mgr"})
+      record: job:ceph_pools_iops:total
+    - expr: |
+        sum(ceph_pool_rd_bytes{job="rook-ceph-mgr"}+ ceph_pool_wr_bytes{job="rook-ceph-mgr"})
+      record: job:ceph_pools_iops_bytes:total
+    - expr: |
+        count(count(ceph_mon_metadata{job="rook-ceph-mgr"} or ceph_osd_metadata{job="rook-ceph-mgr"} or ceph_rgw_metadata{job="rook-ceph-mgr"} or ceph_mds_metadata{job="rook-ceph-mgr"} or ceph_mgr_metadata{job="rook-ceph-mgr"}) by(ceph_version))
+      record: job:ceph_versions_running:count
+  - name: ceph-mgr-status
+    rules:
+    - alert: CephMgrIsAbsent
+      annotations:
+        description: Ceph Manager 已从 Prometheus 目标发现中消失。
+        message: 存储指标收集器服务不再可用。
+        severity_level: critical
+        storage_type: ceph
+      expr: |
+        absent(up{job="rook-ceph-mgr"} == 1)
+      for: 5m
+      labels:
+        severity: critical
+    - alert: CephMgrIsMissingReplicas
+      annotations:
+        description: Ceph 管理器缺少副本。
+        message: 存储指标收集器服务不需要任何副本。
+        severity_level: warning
+        storage_type: ceph
+      expr: |
+        sum(up{job="rook-ceph-mgr"}) < 1
+      for: 5m
+      labels:
+        severity: warning
+  - name: ceph-mds-status
+    rules:
+    - alert: CephMdsMissingReplicas
+      annotations:
+        description: 存储元数据服务所需的最低副本数不可用。 可能会影响存储集群的工作。
+        message: 存储元数据服务的副本不足。
+        severity_level: warning
+        storage_type: ceph
+      expr: |
+        sum(ceph_mds_metadata{job="rook-ceph-mgr"} == 1) < 2
+      for: 5m
+      labels:
+        severity: warning
+  - name: quorum-alert.rules
+    rules:
+    - alert: CephMonQuorumAtRisk
+      annotations:
+        description: 存储群集仲裁很低。 联系支持。
+        message: 存在风险的存储仲裁
+        severity_level: error
+        storage_type: ceph
+      expr: |
+        count(ceph_mon_quorum_status{job="rook-ceph-mgr"} == 1) <= (floor(count(ceph_mon_metadata{job="rook-ceph-mgr"}) / 2) + 1)
+      for: 15m
+      labels:
+        severity: critical
+    - alert: CephMonHighNumberOfLeaderChanges
+      annotations:
+        description: Ceph 监视器 {{ $labels.ceph_daemon }} 在主机 {{ $labels.hostname }} 看过 {{ $value | printf "%.2f" }} 领导者最近每分钟更改一次。
+        message: 存储集群最近见证了许多领导者的变化。
+        severity_level: warning
+        storage_type: ceph
+      expr: |
+        (ceph_mon_metadata{job="rook-ceph-mgr"} * on (ceph_daemon) group_left() (rate(ceph_mon_num_elections{job="rook-ceph-mgr"}[5m]) * 60)) > 0.95
+      for: 5m
+      labels:
+        severity: warning
+  - name: ceph-node-alert.rules
+    rules:
+    - alert: CephNodeDown
+      annotations:
+        description: 存储节点 {{ $labels.node }} 宕机。 请立即检查节点。
+        message: 存储节点 {{ $labels.node }} 宕机
+        severity_level: error
+        storage_type: ceph
+      expr: |
+        cluster:ceph_node_down:join_kube == 0
+      for: 30s
+      labels:
+        severity: critical
+  - name: osd-alert.rules
+    rules:
+    - alert: CephOSDCriticallyFull
+      annotations:
+        description: 在主机 {{ $labels.hostname }} 上，设备类类型 {{$labels.device_class}} 的存储设备 {{ $labels.ceph_daemon }} 的利用率已超过 80%。 立即释放一些空间或添加 {{$labels.device_class}} 类型的容量。
+        message: 后端存储设备已满。
+        severity_level: error
+        storage_type: ceph
+      expr: |
+        (ceph_osd_metadata * on (ceph_daemon) group_right(device_class,hostname) (ceph_osd_stat_bytes_used / ceph_osd_stat_bytes)) >= 0.80
+      for: 40s
+      labels:
+        severity: critical
+    - alert: CephOSDFlapping
+      annotations:
+        description: 存储守护进程 {{ $labels.ceph_daemon }} 在最近 5 分钟已重启 5 次 。 请检查 pod 事件或 ceph 状态以了解原因。
+        message: Ceph storage osd 异常.
+        severity_level: error
+        storage_type: ceph
+      expr: |
+        changes(ceph_osd_up[5m]) >= 10
+      for: 0s
+      labels:
+        severity: critical
+    - alert: CephOSDNearFull
+      annotations:
+        description: 在主机 {{$labels.hostname}} 上，设备类类型 {{$labels.device_class}} 的存储设备 {{ $labels.ceph_daemon }} 的利用率已超过 75%。 立即释放一些空间或添加 {{$labels.device_class}} 类型的容量。
+        message: 后端存储设备快满了。
+        severity_level: warning
+        storage_type: ceph
+      expr: |
+        (ceph_osd_metadata * on (ceph_daemon) group_right(device_class,hostname) (ceph_osd_stat_bytes_used / ceph_osd_stat_bytes)) >= 0.75
+      for: 40s
+      labels:
+        severity: warning
+    - alert: CephOSDDiskNotResponding
+      annotations:
+        description: 主机 {{ $labels.host}} 上的磁盘设备 {{ $labels.device }} 没有响应。
+        message: 磁盘无响应
+        severity_level: error
+        storage_type: ceph
+      expr: |
+        label_replace((ceph_osd_in == 1 and ceph_osd_up == 0),"disk","$1","ceph_daemon","osd.(.*)") + on(ceph_daemon) group_left(host, device) label_replace(ceph_disk_occupation,"host","$1","exported_instance","(.*)")
+      for: 1m
+      labels:
+        severity: critical
+    - alert: CephOSDDiskUnavailable
+      annotations:
+        description: 磁盘设备 {{ $labels.device }} 在主机 {{ $labels.host}} 上不可访问。
+        message: Disk not accessible
+        severity_level: error
+        storage_type: ceph
+      expr: |
+        label_replace((ceph_osd_in == 0 and ceph_osd_up == 0),"disk","$1","ceph_daemon","osd.(.*)") + on(ceph_daemon) group_left(host, device) label_replace(ceph_disk_occupation,"host","$1","exported_instance","(.*)")
+      for: 1m
+      labels:
+        severity: critical
+    - alert: CephOSDSlowOps
+      annotations:
+        description: '{{ $value }} Ceph OSD 请求的处理时间过长。 请检查 ceph 状态以找出原因。'
+        message: OSD 请求的处理时间过长。
+        severity_level: warning
+        storage_type: ceph
+      expr: |
+        ceph_healthcheck_slow_ops > 0
+      for: 30s
+      labels:
+        severity: warning
+    - alert: CephDataRecoveryTakingTooLong
+      annotations:
+        description: 数据恢复已经激活太久了。 联系支持。
+        message: 数据恢复慢
+        severity_level: warning
+        storage_type: ceph
+      expr: |
+        ceph_pg_undersized > 0
+      for: 2h
+      labels:
+        severity: warning
+    - alert: CephPGRepairTakingTooLong
+      annotations:
+        description: 自我修复操作耗时太长。 联系支持。
+        message: 检测到自我修复问题
+        severity_level: warning
+        storage_type: ceph
+      expr: |
+        ceph_pg_inconsistent > 0
+      for: 1h
+      labels:
+        severity: warning
+  - name: persistent-volume-alert.rules
+    rules:
+    - alert: PersistentVolumeUsageNearFull
+      annotations:
+        description: PVC {{ $labels.persistentvolumeclaim }} 利用率已超过 75%。 释放一些空间或扩展 PVC。
+        message: PVC {{ $labels.persistentvolumeclaim }} 快满了。 需要进行数据删除或PVC扩容。
+        severity_level: warning
+        storage_type: ceph
+      expr: |
+        (kubelet_volume_stats_used_bytes * on (namespace,persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)"})) / (kubelet_volume_stats_capacity_bytes * on (namespace,persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)"})) > 0.75
+      for: 5s
+      labels:
+        severity: warning
+    - alert: PersistentVolumeUsageCritical
+      annotations:
+        description: PVC {{ $labels.persistentvolumeclaim }} 利用率已超过 85%。 立即释放一些空间或扩展 PVC。
+        message: PVC {{ $labels.persistentvolumeclaim }} 已满。 需要进行数据删除或PVC扩容。
+        severity_level: error
+        storage_type: ceph
+      expr: |
+        (kubelet_volume_stats_used_bytes * on (namespace,persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)"})) / (kubelet_volume_stats_capacity_bytes * on (namespace,persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)"})) > 0.85
+      for: 5s
+      labels:
+        severity: critical
+  - name: cluster-state-alert.rules
+    rules:
+    - alert: CephClusterErrorState
+      annotations:
+        description: 存储集群超过 10m 处于错误状态。
+        message: 存储集群处于错误状态
+        severity_level: error
+        storage_type: ceph
+      expr: |
+        ceph_health_status{job="rook-ceph-mgr"} > 1
+      for: 10m
+      labels:
+        severity: critical
+    - alert: CephClusterWarningState
+      annotations:
+        description: 存储集群超过 10m 处于警告状态。
+        message: 存储集群处于降级状态
+        severity_level: warning
+        storage_type: ceph
+      expr: |
+        ceph_health_status{job="rook-ceph-mgr"} == 1
+      for: 10m
+      labels:
+        severity: warning
+    - alert: CephOSDVersionMismatch
+      annotations:
+        description: 有 {{ $value }} 不同版本的 Ceph OSD 组件在运行。
+        message: 有多个版本的存储服务在运行。
+        severity_level: warning
+        storage_type: ceph
+      expr: |
+        count(count(ceph_osd_metadata{job="rook-ceph-mgr"}) by (ceph_version)) > 1
+      for: 10m
+      labels:
+        severity: warning
+    - alert: CephMonVersionMismatch
+      annotations:
+        description: 有 {{ $value }} 不同版本的 Ceph Mon 组件在运行。
+        message: 有多个版本的存储服务在运行。
+        severity_level: warning
+        storage_type: ceph
+      expr: |
+        count(count(ceph_mon_metadata{job="rook-ceph-mgr"}) by (ceph_version)) > 1
+      for: 10m
+      labels:
+        severity: warning
+  - name: cluster-utilization-alert.rules
+    rules:
+    - alert: CephClusterNearFull
+      annotations:
+        description: 存储集群利用率已超过 75%，并将在 85% 时变为只读。 释放一些空间或扩展存储集群。
+        message: 存储集群快满了。 需要删除数据或集群扩容。
+        severity_level: warning
+        storage_type: ceph
+      expr: |
+        ceph_cluster_total_used_raw_bytes / ceph_cluster_total_bytes > 0.75
+      for: 5s
+      labels:
+        severity: warning
+    - alert: CephClusterCriticallyFull
+      annotations:
+        description: 存储集群利用率已超过 80%，将在 85% 时变为只读。 立即释放一些空间或扩展存储集群。
+        message: 存储集群严重满，需要立即删除数据或扩展集群。
+        severity_level: error
+        storage_type: ceph
+      expr: |
+        ceph_cluster_total_used_raw_bytes / ceph_cluster_total_bytes > 0.80
+      for: 5s
+      labels:
+        severity: critical
+    - alert: CephClusterReadOnly
+      annotations:
+        description: 存储集群利用率已超过 85%，现在将变为只读。 立即释放一些空间或扩展存储集群。
+        message: 存储集群现在是只读的，需要立即删除数据或集群扩展。
+        severity_level: error
+        storage_type: ceph
+      expr: |
+        ceph_cluster_total_used_raw_bytes / ceph_cluster_total_bytes >= 0.85
+      for: 0s
+      labels:
+        severity: critical
+  - name: pool-quota.rules
+    rules:
+    - alert: CephPoolQuotaBytesNearExhaustion
+      annotations:
+        description: 存储池 {{ $labels.name }} 配额使用率已超过 70%。
+        message: 存储池配额（字节）即将耗尽。
+        severity_level: warning
+        storage_type: ceph
+      expr: |
+        (ceph_pool_stored_raw * on (pool_id) group_left(name)ceph_pool_metadata) / ((ceph_pool_quota_bytes * on (pool_id) group_left(name)ceph_pool_metadata) > 0) > 0.70
+      for: 1m
+      labels:
+        severity: warning
+    - alert: CephPoolQuotaBytesCriticallyExhausted
+      annotations:
+        description: 存储池 {{ $labels.name }} 配额使用率已超过 90%。
+        message: 存储池配额（字节）严重耗尽。
+        severity_level: critical
+        storage_type: ceph
+      expr: |
+        (ceph_pool_stored_raw * on (pool_id) group_left(name)ceph_pool_metadata) / ((ceph_pool_quota_bytes * on (pool_id) group_left(name)ceph_pool_metadata) > 0) > 0.90
+      for: 1m
+      labels:
+        severity: critical
+

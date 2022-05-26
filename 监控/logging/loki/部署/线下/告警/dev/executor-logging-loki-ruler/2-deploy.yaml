@@ -1,0 +1,51 @@
+---
+# 服务
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: executor-logging-loki-ruler
+  namespace: dev
+  labels:
+    app: executor-logging-loki-ruler
+spec:
+  serviceName: executor-logging-loki-ruler
+  replicas: 1
+  selector:
+    matchLabels:
+      app: executor-logging-loki-ruler
+  template:
+    metadata:
+      labels:
+        app: executor-logging-loki-ruler
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: executor-logging-loki-ruler
+          image: ctr-registry.local./ops/executor-logging-loki-ruler:0.0.3
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: 5000m
+              memory: 5000Mi
+              ephemeral-storage: 10Gi
+          volumeMounts:
+            - mountPath: /usr/src/app/configs
+              name: executor-logging-loki-ruler-application-conf
+            - mountPath: /usr/src/app/temp
+              name: executor-logging-loki-ruler-application
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+            - name: restart
+              value: "2"
+      volumes:
+        - name: executor-logging-loki-ruler-application-conf
+          configMap:
+            name: executor-logging-loki-ruler
+        - name: executor-logging-loki-ruler-application
+          persistentVolumeClaim:
+            claimName: executor-logging-loki-ruler

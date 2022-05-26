@@ -1,0 +1,25 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    service-app-type: java
+  name: java-service-app
+  namespace: dev
+spec:
+  endpoints:
+    - interval: 15s
+      port: http1
+      relabelings:
+        - action: replace
+          regex: (.*)
+          replacement: $1
+          sourceLabels:
+            - __meta_kubernetes_endpoints_label_job
+          targetLabel: job
+  selector:
+    matchLabels:
+      service-app-type: java
+  namespaceSelector:
+    matchNames:
+      - dev
+      - stage

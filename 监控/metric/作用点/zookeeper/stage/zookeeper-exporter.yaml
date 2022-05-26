@@ -1,0 +1,45 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/name: zookeeper-1
+  name: zookeeper-exporter-1
+  namespace: stage
+spec:
+  endpoints:
+  - interval: 15s
+    port: for-7070
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: zookeeper-1
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/name: zookeeper-2
+  name: zookeeper-exporter-2
+  namespace: stage
+spec:
+  endpoints:
+  - interval: 15s
+    port: for-7070
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: zookeeper-2
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/name: zookeeper-3
+  name: zookeeper-exporter-3
+  namespace: stage
+spec:
+  endpoints:
+  - interval: 15s
+    port: for-7070
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: zookeeper-3

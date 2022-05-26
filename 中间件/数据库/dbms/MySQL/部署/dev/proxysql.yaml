@@ -1,0 +1,164 @@
+---
+# 配置文件
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: proxysql
+  namespace: dev
+data:
+  proxysql.cnf: |
+    datadir="/var/lib/proxysql"
+    admin_variables=
+    {
+        admin_credentials="admin:admin;radmin:radmin"
+        mysql_ifaces="0.0.0.0:6032"
+    }
+    mysql_variables=
+    {
+        threads=4
+        max_connections=2048
+        default_query_delay=0
+        default_query_timeout=36000000
+        have_compress=true
+        poll_timeout=2000
+        interfaces="0.0.0.0:6033"
+        default_schema="information_schema"
+        stacksize=1048576
+        server_version="8.0.27"
+        connect_timeout_server=3000
+        monitor_username="dev"
+        monitor_password="devwjh"
+        monitor_history=1000
+        monitor_connect_interval=1000
+        monitor_ping_interval=1000
+        monitor_read_only_interval=1000
+        monitor_read_only_timeout=500
+        ping_interval_server_msec=10000
+        ping_timeout_server=500
+        commands_stats=true
+        sessions_sort=true
+        connect_retries_on_failure=10
+    }
+    mysql_users:
+    (
+      {
+        username = "dev"
+        password = "devwjh"
+        default_schema="information_schema"
+        active = 1
+        transaction_persistent = 1
+      }
+    )
+    mysql_servers =
+    (
+      {
+        address="mysql-slaver"
+        port=80
+        hostgroup=0
+        max_connections=2000
+        compression=1
+        weight=1
+        max_replication_lag=10
+        max_latency_ms=1000
+      },
+      {
+        address="mysql-master"
+        port=80
+        hostgroup=0
+        max_connections=2000
+        compression=1
+        weight=1
+        max_latency_ms=1000
+      },
+      {
+        address="mysql-master"
+        port=80
+        hostgroup=1
+        max_connections=2000
+        compression=1
+        weight=1
+        max_latency_ms=1000
+      }
+    )
+    mysql_query_rules:
+    (
+      {
+        rule_id=100
+        active=1
+        match_pattern="^SELECT .*"
+        destination_hostgroup=0
+        apply=0
+      },
+      {
+        rule_id=200
+        active=1
+        match_pattern="^SELECT .* FOR UPDATE"
+        destination_hostgroup=1
+        apply=1
+      },
+      {
+        rule_id=300
+        active=1
+        match_pattern=".*"
+        destination_hostgroup=1
+        apply=1
+      }
+    )
+---
+# 服务
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: proxysql
+  namespace: dev
+  labels:
+    app: proxysql
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: proxysql
+  template:
+    metadata:
+      labels:
+        app: proxysql
+    spec:
+      containers:
+        - name: proxysql
+          image: ctr-registry.local./ops/proxysql/proxysql:2.3.2
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - "proxysql -f --idle-threads -D /var/lib/proxysql -c /config/proxysql.cnf"
+          ports:
+            - containerPort: 6032
+            - containerPort: 6033
+            - containerPort: 6070
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+            - name: restart
+              value: '26'
+          volumeMounts:
+            - mountPath: /config
+              name: conf-proxysql
+          resources:
+            requests:
+              cpu: 100m
+              memory: 0.1Gi
+              ephemeral-storage: 10Gi
+            limits:
+              cpu: 9000m
+              memory: 12Gi
+              ephemeral-storage: 100Gi
+          livenessProbe:
+            tcpSocket:
+              port: 6033
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 36
+      volumes:
+        - name: conf-proxysql
+          configMap:
+            name: proxysql

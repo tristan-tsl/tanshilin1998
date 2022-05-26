@@ -1,0 +1,41 @@
+version: '3'
+services:
+  mysql-server:
+    image: registry.cn-shenzhen.aliyuncs.com/iitest/mysql:5.7.4
+    container_name: itest-mysql-server
+    ports:
+      - 6033:3306
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - ./mysql:/var/lib/mysql
+    restart: always
+    networks:
+      - itest-net
+  itest-web:
+    image: registry.cn-shenzhen.aliyuncs.com/iitest/itest:10.0.0RC2
+    container_name: itest_web_server
+    ports:
+      - 8010:8080
+      - 8062:8062
+      - 8063:8063
+    privileged: true
+    links:
+      - mysql-server:itest-mysql-server
+      - jmeter:jmeter
+    restart: always
+    networks:
+      - itest-net
+  jmeter:
+    image: registry.cn-shenzhen.aliyuncs.com/iitest/jmeter:10.0.0RC2
+    container_name: itest_jmeter_server
+    ports:
+      - 8020:8080
+    privileged: true
+    links:
+      - mysql-server:itest-mysql-server
+    restart: always
+    networks:
+      - itest-net
+networks:
+  itest-net:
+    driver: bridge

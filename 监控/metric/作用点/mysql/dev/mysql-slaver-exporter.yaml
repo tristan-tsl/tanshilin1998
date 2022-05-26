@@ -1,0 +1,77 @@
+---
+# 服务
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-slaver-exporter
+  namespace: dev
+  labels:
+    app.kubernetes.io/name: mysql-slaver-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mysql-slaver-exporter
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mysql-slaver-exporter
+    spec:
+      containers:
+        - name: mysql-slaver-exporter
+          image: ctr-registry.local./ops/mysqld-exporter:v0.13.0
+          ports:
+            - containerPort: 9104
+              name: http
+          #        livenessProbe:
+          #          httpGet:
+          #            path: /
+          #            port: 9104
+          #          initialDelaySeconds: 30
+          #          timeoutSeconds: 10
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+            - name: DATA_SOURCE_NAME
+              value: "root:@(mysql-slaver:80)/"
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+              ephemeral-storage: 0.1Gi
+            limits:
+              cpu: 500m
+              memory: 1000Mi
+              ephemeral-storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: mysql-slaver-exporter
+  name: mysql-slaver-exporter
+  namespace: dev
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+  selector:
+    app.kubernetes.io/name: mysql-slaver-exporter
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/name: mysql-slaver-exporter
+  name: mysql-slaver-exporter
+  namespace: dev
+spec:
+  endpoints:
+    - interval: 15s
+      port: http
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mysql-slaver-exporter
+

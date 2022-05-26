@@ -1,0 +1,1248 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="applicable-device" content="pc,mobile" />
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="data-spm" content="a2c6h" />
+    <title>【笔谈】Github上新鲜出炉的深度学习系统mxnet的中文介绍-阿里云开发者社区</title>
+
+    <meta name="keywords" content="机器学习/深度学习,算法,算法框架/工具,异构计算,Python" />
+    <meta name="description" />
+    <meta property="og:title" content="【笔谈】Github上新鲜出炉的深度学习系统mxnet的中文介绍-阿里云开发者社区" />
+    <meta property="og:type" content="website" />
+    <meta property="og:description" />
+    <meta property="og:image" content="https://img.alicdn.com/tfs/TB1LCE1aQ5E3KVjSZFCXXbuzXXa-200-200.png" />
+    <meta property="og:url" content="https://developer.aliyun.com/article/5" />
+
+    <link rel="canonical" href="https://developer.aliyun.com/article/5" />
+
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_422887_nuq15p2zz5154s4i.css" />
+
+    <link rel="stylesheet" href="//g.alicdn.com/aliyun/developer-aliyun-com-fe/2.3.0/css/??articleDetail.css,newDetailCommon.css,medalDialog.css,mathjax.css,yuqueDocViewer.css" />
+
+    
+        <meta name="nav-config" content="topbar=developer,footer=default" />
+        <link rel="stylesheet" href="//g.alicdn.com/aliyun/nav-loader/css/index.css" />
+        <script src="//g.alicdn.com/aliyun/nav-loader/js/index.js" nonce="f8af9234c93843119ef0e8d0026919ca"></script>
+        <style type="text/css">
+            [data-role-topbar] {
+                min-height: 114px !important;
+            }
+            @media (max-width: 768px) {
+                [data-role-topbar] {
+                    min-height: 50px !important;
+                }
+            }
+        </style>
+    
+
+    <script nonce="f8af9234c93843119ef0e8d0026919ca">
+        var GLOBAL_CONFIG = {
+            "wechat_disable": false,
+            "articleId": '5',
+            "uccCsrfToken": null,
+            "weibohost": 'http://service.weibo.com/share/share.php?title=%E3%80%90%E7%AC%94%E8%B0%88%E3%80%91Github%E4%B8%8A%E6%96%B0%E9%B2%9C%E5%87%BA%E7%82%89%E7%9A%84%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%B3%BB%E7%BB%9Fmxnet%E7%9A%84%E4%B8%AD%E6%96%87%E4%BB%8B%E7%BB%8D&url=https%3A%2F%2Fdeveloper.aliyun.com%2Farticle%2F5',
+            "groupCode": null,
+            "uccDomain": 'https://ucc.aliyun.com',
+            "csrf_key": 'p_csrf',
+            "csrf_val": '314422f1-ddf9-4d85-8155-33e7143712b9',
+            "groupInfo": null,
+            "articleRealGroupCode": null,
+            "needLarkJs": false,
+            "larkContent": null,
+            "isLogin": false,
+            "isBest": null,
+            "favoriteBizCategory": 'yq-article',
+            "favoriteObjectId": '5',
+            "likeBizCategory": 'yq-article',
+            "likeObjectId": '5',
+            "followBizCategory": 'developer-user',
+            "followObjectId": 'sedsy6ctk3hke',
+            "commentNumBizCategory": 'yq-comment-type-article',
+            "commentNumObjectId": '5',
+            "contentIsFolded": false
+        };
+    </script>
+</head>
+<body data-spm="12873639"><script type="text/javascript"
+id="beacon-aplus"
+src="//g.alicdn.com/alilog/mlog/aplus_v2.js"
+exparams="category=&userid=&aplus&yunid=&yunpk=&channel=&cps="
+nonce="f8af9234c93843119ef0e8d0026919ca"
+cspx="f8af9234c93843119ef0e8d0026919ca"
+async>
+</script>
+
+
+        <script nonce="f8af9234c93843119ef0e8d0026919ca">
+            /*<![CDATA[*/
+            !(function(c,b,d,a){c[a]||(c[a]={});c[a].config= {
+                pid: "hl0znr436e@8b95b85ff013e64",
+                appType: "web",
+                imgUrl: "https://arms-retcode.aliyuncs.com/r.png?",
+                sendResource: true,
+                enableLinkTrace: true,
+                behavior: true,
+                enableConsole: true,
+                environment: (function getEnv(){
+                    return document.location.hostname === 'developer.aliyun.com' ? 'prod' : 'local';
+                })(),
+                uid: (function getUID() {
+                    var pk = document.cookie.match(/login_aliyunid_pk=(.*?);/);
+                    var cna = document.cookie.match(/cna=(.*?);/);
+                    return pk && pk.length === 2 ? pk[1] : cna && cna.length === 2 ? cna[1] : "";
+                })()
+            };with(b)with(body)with(insertBefore(createElement("script"),firstChild))setAttribute("crossorigin","",src=d)
+            })(window,document,"https://retcode.alicdn.com/retcode/bl.js","__bl");
+            /*]]>*/
+        </script>
+    
+<div data-role-topbar="developer"></div>
+<div class="article-detail">
+
+    <h1 class="dev-seo-tag">【笔谈】Github上新鲜出炉的深度学习系统mxnet的中文介绍-阿里云开发者社区</h1>
+
+    <div class="developer-nav">
+        <a href="/" target="_blank" class="nav-item">开发者社区</a>>
+        <a class="nav-item" target="_blank" data-spm-click="gostr=/developer.article.detail_group;locaid=d1002" href="/profile/sedsy6ctk3hke">云篆</a>>
+        <a class="nav-item">正文</a>
+    </div>
+    <div class="article-wrapper">
+        <div class="left-content">
+            <div id="action-btns"></div>
+            <div class="content-wrapper">
+                <h1 class="article-title">【笔谈】Github上新鲜出炉的深度学习系统mxnet的中文介绍</h1>
+                <p class="article-info">
+                    
+                    <span class="article-info-time">2015-12-04</span>
+                    <!--<span class="article-info-collection">22</span>-->
+                    <span class="article-info-read">14045</span>
+                    <!--<span class="article-info-zan">222</span>-->
+                    <!--<span class="article-info-comment">222</span>-->
+                    
+                </p>
+                
+                
+
+                
+
+                <div class="article-desc">
+                    <b>简介：</b>
+                    <span></span>
+                </div>
+
+                <div class="article-hide-content" style="height: auto;">
+                    <div class="article-hide-box">
+                        <div class="article-hide-line"></div>
+                        <div class="article-hide-btn" id="btn-readmore">+关注继续查看</div>
+                    </div>
+                    <div class="article-inner markdown-body">
+<span style="color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">凌晨时看到一篇，新鲜出炉的深度学习系统mxnet的文章。关键已经有了中文介绍，译者是</span><a class="email" href="mailto:muli@cs.cmu.edu" style="color:rgb(66,139,202);text-decoration:none;font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background:rgb(255,255,255) 0px 0px;">muli@cs.cmu.edu</a><span style="color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">，地址在https://github.com/dmlc/mxnet/issues/797。</span><br style="color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);"><br style="color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);"><span style="color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">内容如下：<br></span>
+<hr>
+<h1 style="margin:30px 0px 10px;font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-weight:500;line-height:1.1;color:rgb(51,51,51);font-size:36px;border-bottom-width:1px;border-bottom-style:dashed;border-bottom-color:rgb(221,221,221);background-color:rgb(255,255,255);">MXNet设计和实现简介</h1>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">神经网络本质上是一种语言，我们通过它来表达对应用问题的理解。例如我们用卷积层来表达空间相关性，RNN来表达时间连续性。根据问题的复杂性和信息如何从输入到输出一步步提取，我们将不同大小的层按一定原则连接起来。近年来随着数据的激增和计算能力的大幅提升，神经网络也变得越来越深和大。例如最近几次imagnet竞赛的冠军都使用有数十至百层的网络。对于这一类神经网络我们通常称之为深度学习。从应用的角度而言，对深度学习最重要的是如何方便的表述神经网络，以及如何快速训练得到模型。</p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">对于一个优秀的深度学习系统，或者更广来说优秀的科学计算系统，最重要的编程接口的设计。他们都采用将一个<em>领域特定语言(domain specific language)</em>嵌入到一个主语言中。例如numpy将矩阵运算嵌入到python中。这类嵌入一般分为两种，其中一种嵌入的较浅，其中每个语句都按原来的意思执行，且通常采用<em>命令式编程(imperative programming)</em>，其中numpy和Torch就是属于这种。而另一种则用一种深的嵌入方式，提供一整套针对具体应用的迷你语言。这一种通常使用<em>声明式语言(declarative programing)</em>，既用户只需要声明要做什么，而具体执行则由系统完成。这类系统包括Caffe，theano和刚公布的TensorFlow。</p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">这两种方式各有利弊，总结如下</p>
+<table style="border-collapse:collapse;border-spacing:0px;display:block;width:auto;overflow:auto;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">
+<thead><tr>
+<th style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);"> </th>
+<th style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">浅嵌入，命令式编程</th>
+<th style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">深嵌入，声明式编程</th>
+</tr></thead>
+<tbody>
+<tr>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">如何执行<em>a=b+1</em>
+</td>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">需要b已经被赋值。立即执行加法，将结果保存在a中。</td>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">返回对应的计算图(computation graph)，我们可以之后对b进行赋值，然后再执行加法运算</td>
+</tr>
+<tr>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">优点</td>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">语义上容易理解，灵活，可以精确控制行为。通常可以无缝的和主语言交互，方便的利用主语言的各类算法，工具包，bug和性能调试器。</td>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">在真正开始计算的时候已经拿到了整个计算图，所以我们可以做一系列优化来提升性能。实现辅助函数也容易，例如对任何计算图都提供forward和backward函数，对计算图进行可视化，将图保存到硬盘和从硬盘读取。</td>
+</tr>
+<tr>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">缺点</td>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">实现统一的辅助函数困和提供整体优化都很困难。</td>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">很多主语言的特性都用不上。某些在主语言中实现简单，但在这里却经常麻烦，例如if-else语句 。debug也不容易，例如监视一个复杂的计算图中的某个节点的中间结果并不简单。</td>
+</tr>
+</tbody>
+</table>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">目前现有的系统大部分都采用上两种编程模式的一种。与它们不同的是，MXNet尝试将两种模式无缝的结合起来。在命令式编程上MXNet提供张量运算，而声明式编程中MXNet支持符号表达式。用户可以自由的混合它们来快速实现自己的想法。例如我们可以用声明式编程来描述神经网络，并利用系统提供的自动求导来训练模型。另一方便，模型的迭代训练和更新模型法则中可能涉及大量的控制逻辑，因此我们可以用命令式编程来实现。同时我们用它来进行方便的调式和与主语言交互数据。</p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">下表我们比较MXNet和其他流行的深度学习系统</p>
+<table style="border-collapse:collapse;border-spacing:0px;display:block;width:auto;overflow:auto;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">
+<thead><tr>
+<th style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);"> </th>
+<th style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">主语言</th>
+<th style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">从语言</th>
+<th style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">硬件</th>
+<th style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">分布式</th>
+<th style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">命令式</th>
+<th style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">声明式</th>
+</tr></thead>
+<tbody>
+<tr>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">Caffe</td>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">C++</td>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">Python/Matlab</td>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">CPU/GPU</td>
+<td align="center" style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">x</td>
+<td align="center" style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">x</td>
+<td align="center" style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">v</td>
+</tr>
+<tr>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">Torch</td>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">Lua</td>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">-</td>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">CPU/GPU/FPGA</td>
+<td align="center" style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">x</td>
+<td align="center" style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">v</td>
+<td align="center" style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">x</td>
+</tr>
+<tr>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">Theano</td>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">Python</td>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">-</td>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">CPU/GPU</td>
+<td align="center" style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">x</td>
+<td align="center" style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">x</td>
+<td align="center" style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">v</td>
+</tr>
+<tr>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">TensorFlow</td>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">C++</td>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">Python</td>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">CPU/GPU/Mobile</td>
+<td align="center" style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">v</td>
+<td align="center" style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">x</td>
+<td align="center" style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">v</td>
+</tr>
+<tr>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">MXNet</td>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">C++</td>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">Python/R/Julia/Go</td>
+<td style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">CPU/GPU/Mobile</td>
+<td align="center" style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">v</td>
+<td align="center" style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">v</td>
+<td align="center" style="padding:6px 12px;vertical-align:top;border:1px solid rgb(221,221,221);">v</td>
+</tr>
+</tbody>
+</table>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">（注，TensforFlow暂时没有公开其分布式实现）</p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">MXNet的系统架构如下图所示：</p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);"><a href="https://raw.githubusercontent.com/dmlc/web-data/master/mxnet/paper/sys.png" target="_blank" style="color:rgb(66,139,202);text-decoration:none;background:0px 0px;"><img src="https://raw.githubusercontent.com/dmlc/web-data/master/mxnet/paper/sys.png" alt="" style="border:0px;vertical-align:middle;"></a></p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">从上到下分别为各种主语言的嵌入，编程接口（矩阵运算，符号表达式，分布式通讯），两种编程模式的统一系统实现，以及各硬件的支持。接下一章我们将介绍编程接口，然后下一章介绍系统实现。之后我们给出一些实验对比结果，以及讨论MXNet的未来。</p>
+<h2 style="font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-weight:500;line-height:1.1;color:rgb(51,51,51);margin-top:30px;margin-bottom:10px;font-size:30px;border-bottom-width:1px;border-bottom-style:dashed;border-bottom-color:rgb(221,221,221);background-color:rgb(255,255,255);">编程接口</h2>
+<h3 style="font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-weight:500;line-height:1.1;color:rgb(51,51,51);margin-top:30px;margin-bottom:10px;font-size:24px;border-bottom-width:1px;border-bottom-style:dashed;border-bottom-color:rgb(221,221,221);background-color:rgb(255,255,255);">
+<code style="font-size:21.6px;padding:2px 4px;font-family:Menlo, Monaco, Consolas, 'Courier New', monospace;color:rgb(199,37,78);white-space:nowrap;background-color:rgb(249,242,244);">Symbol</code>： 声明式的符号表达式</h3>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">MXNet使用多值输出的符号表达式来声明计算图。符号是由操作子构建而来。一个操作子可以是一个简单的矩阵运算“+”，也可以是一个复杂的神经网络里面的层，例如卷积层。一个操作子可以有多个输入变量和多个输出变量，还可以有内部状态变量。一个变量既可以是自由的，我们可以之后对其赋值；也可以是某个操作子的输出。例如下面的代码中我们使用Julia来定义一个多层感知机，它由一个代表输入数据的自由变量，和多个神经网络层串联而成。</p>
+<div class="highlight highlight-source-julia" style="color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);"><pre><span>using</span> MXNet
+mlp <span>=</span> <span>@mx</span><span>.</span>chain <span>mx.Variable</span>(<span>:data</span>) <span>=</span><span>&gt;</span>
+  <span>mx.FullyConnected</span>(num_hidden<span>=</span><span>64</span>) <span>=</span><span>&gt;</span>
+  <span>mx.Activation</span>(act_type<span>=</span><span>:relu</span>)    <span>=</span><span>&gt;</span>
+  <span>mx.FullyConnected</span>(num_hidden<span>=</span><span>10</span>) <span>=</span><span>&gt;</span>
+  mx<span>.</span><span>Softmax</span>()</pre></div>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">在执行一个符号表达式前，我们需要对所有的自由变量进行赋值。上例中，我们需要给定数据，和各个层里隐式定义的输入，例如全连接层的权重和偏值。我们同时要申明所需要的输出，例如softmax的输出。</p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">除了执行获得softmax输出外（通常也叫forward），符号表达式也支持自动求导来获取各权重和偏值对应的梯度（也称之为backward）。此外，我们还可以提前估计计算时需要的内存，符号表达式的可视化，读入和输出等。</p>
+<h3 style="font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-weight:500;line-height:1.1;color:rgb(51,51,51);margin-top:30px;margin-bottom:10px;font-size:24px;border-bottom-width:1px;border-bottom-style:dashed;border-bottom-color:rgb(221,221,221);background-color:rgb(255,255,255);">
+<code style="font-size:21.6px;padding:2px 4px;font-family:Menlo, Monaco, Consolas, 'Courier New', monospace;color:rgb(199,37,78);white-space:nowrap;background-color:rgb(249,242,244);">NDArray</code>：命令式的张量计算</h3>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">MXNet提供命令式的张量计算来桥接主语言的和符号表达式。下面代码中，我们在GPU上计算矩阵和常量的乘法，并使用numpy来打印结果</p>
+<div class="highlight highlight-source-python" style="color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);"><pre><span>&gt;&gt;&gt;</span> <span>import</span> MXNet <span>as</span> mx
+<span>&gt;&gt;&gt;</span> a <span>=</span> mx.nd.ones((<span>2</span>, <span>3</span>),
+... mx.gpu())
+<span>&gt;&gt;&gt;</span> <span>print</span> (a <span>*</span> <span>2</span>).asnumpy()
+[[ <span>2.</span>  <span>2.</span>  <span>2.</span>]
+ [ <span>2.</span>  <span>2.</span>  <span>2.</span>]]</pre></div>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">另一方面，NDArray可以无缝和符号表达式进行对接。假设我们使用Symbol定义了一个神经网络，那么我们可以如下实现一个梯度下降算法</p>
+<div class="highlight highlight-source-c++" style="color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);"><pre><span>for</span> (<span>int</span> i = <span>0</span>; i &lt; max_iter; ++i) {
+  network.<span>forward</span>();
+  network.<span>backward</span>();
+  network.<span>weight</span> -= eta * network.<span>gradient</span>
+}</pre></div>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">这里梯度由Symbol计算而得。Symbol的输出结果均表示成NDArray，我们可以通过NDArray提供的张量计算来更新权重。此外，我们还利用了主语言的for循环来进行迭代，学习率eta也是在主语言中进行修改。</p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">上面的混合实现跟使用纯符号表达式实现的性能相差无二，然后后者在表达控制逻辑时会更加复杂。其原因是NDArray的执行会和Symbol类似的构建一个计算图，并与其他运算一同交由后台引擎执行。对于运算<code style="font-size:14.4px;padding:2px 4px;font-family:Menlo, Monaco, Consolas, 'Courier New', monospace;color:rgb(199,37,78);white-space:nowrap;background-color:rgb(249,242,244);">-=</code>由于我们只是将其结果交给另一个Symbol的forward作为输入，因此我们不需要立即得到结果。当上面的for循环结束时，我们只是将数个Symbol和NDarray对应的计算图提交给了后台引擎。当我们最终需要结果的时候，例如将weight复制到主语言中或者保存到磁盘时，程序才会被阻塞直到所有计算完成。</p>
+<h3 style="font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-weight:500;line-height:1.1;color:rgb(51,51,51);margin-top:30px;margin-bottom:10px;font-size:24px;border-bottom-width:1px;border-bottom-style:dashed;border-bottom-color:rgb(221,221,221);background-color:rgb(255,255,255);">
+<code style="font-size:21.6px;padding:2px 4px;font-family:Menlo, Monaco, Consolas, 'Courier New', monospace;color:rgb(199,37,78);white-space:nowrap;background-color:rgb(249,242,244);">KVStore</code>：多设备间的数据交互</h3>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">MXNet提供一个分布式的key-value存储来进行数据交换。它主要有两个函数，<br>
+1. push： 将key-value对从一个设备push进存储<br>
+2. pull：将某个key上的值从存储中pull出来此外，KVStore还接受自定义的更新函数来控制收到的值如何写入到存储中。最后KVStore提供数种包含最终一致性模型和顺序一致性模型在内的数据一致性模型。</p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">在下面例子中，我们将前面的梯度下降算法改成分布式梯度下降。</p>
+<div class="highlight highlight-source-c++" style="color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);"><pre>KVStore <span>kvstore</span>(<span><span>"</span>dist_async<span>"</span></span>);
+kvstore.set_updater([](NDArray weight, NDArray gradient) {
+    weight -= eta * gradient;
+  });
+<span>for</span> (<span>int</span> i = <span>0</span>; i &lt; max_iter; ++i) {
+   kvstore.<span>pull</span>(network.<span>weight</span>);
+   network.<span>forward</span>();
+   network.<span>backward</span>();
+   kvstore.<span>push</span>(network.<span>gradient</span>);
+}</pre></div>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">在这里我们先使用最终一致性模型创建一个kvstore，然后将更新函数注册进去。在每轮迭代前，每个计算节点先将最新的权重pull回来，之后将计算的得到的梯度push出去。kvstore将会利用更新函数来使用收到的梯度更新其所存储的权重。</p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">这里push和pull跟NDArray一样使用了延后计算的技术。它们只是将对应的操作提交给后台引擎，而引擎则调度实际的数据交互。所以上述的实现跟我们使用纯符号实现的性能相差无几。</p>
+<h3 style="font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-weight:500;line-height:1.1;color:rgb(51,51,51);margin-top:30px;margin-bottom:10px;font-size:24px;border-bottom-width:1px;border-bottom-style:dashed;border-bottom-color:rgb(221,221,221);background-color:rgb(255,255,255);">读入数据模块</h3>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">数据读取在整体系统性能上占重要地位。MXNet提供工具能将任意大小的样本压缩打包成单个或者数个文件来加速顺序和随机读取。</p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">通常数据存在本地磁盘或者远端的分布式文件系统上（例如HDFS或者Amazon S3)，每次我们只需要将当前需要的数据读进内存。MXNet提供迭代器可以按块读取不同格式的文件。迭代器使用多线程来解码数据，并使用多线程预读取来隐藏文件读取的开销。</p>
+<h3 style="font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-weight:500;line-height:1.1;color:rgb(51,51,51);margin-top:30px;margin-bottom:10px;font-size:24px;border-bottom-width:1px;border-bottom-style:dashed;border-bottom-color:rgb(221,221,221);background-color:rgb(255,255,255);">训练模块</h3>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">MXNet实现了常用的优化算法来训练模型。用户只需要提供数据数据迭代器和神经网络的Symbol便可。此外，用户可以提供额外的KVStore来进行分布式的训练。例如下面代码使用分布式异步SGD来训练一个模型，其中每个计算节点使用两快GPU。</p>
+<div class="highlight highlight-source-python" style="color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);"><pre><span>import</span> MXNet <span>as</span> mx
+model <span>=</span> mx.model.FeedForward(
+    <span>ctx</span>                <span>=</span> [mx.gpu(<span>0</span>), mx.gpu(<span>1</span>)],
+    <span>symbol</span>             <span>=</span> network,
+    <span>num_epoch</span>          <span>=</span> <span>100</span>,
+    <span>learning_rate</span>      <span>=</span> <span>0.01</span>,
+    <span>momentum</span>           <span>=</span> <span>0.9</span>,
+    <span>wd</span>                 <span>=</span> <span>0.00001</span>,
+    <span>initializer</span>        <span>=</span> mx.init.Xavier(<span>factor_type</span><span>=</span><span><span>"</span>in<span>"</span></span>, <span>magnitude</span><span>=</span><span>2.34</span>))
+model.fit(
+    <span>X</span>                  <span>=</span> train_iter,
+    <span>eval_data</span>          <span>=</span> val_iter,
+    <span>kvstore</span>            <span>=</span> mx.kvstore.create(<span><span>'</span>dist_async<span>'</span></span>),
+    <span>epoch_end_callback</span> <span>=</span> mx.callback.do_checkpoint(<span><span>'</span>model_<span>'</span></span>))</pre></div>
+<h2 style="font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-weight:500;line-height:1.1;color:rgb(51,51,51);margin-top:30px;margin-bottom:10px;font-size:30px;border-bottom-width:1px;border-bottom-style:dashed;border-bottom-color:rgb(221,221,221);background-color:rgb(255,255,255);">系统实现</h2>
+<h3 style="font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-weight:500;line-height:1.1;color:rgb(51,51,51);margin-top:30px;margin-bottom:10px;font-size:24px;border-bottom-width:1px;border-bottom-style:dashed;border-bottom-color:rgb(221,221,221);background-color:rgb(255,255,255);">计算图</h3>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">一个已经赋值的符号表达式可以表示成一个计算图。下图是之前定义的多层感知机的部分计算图，包含forward和backward。</p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);"><a href="https://raw.githubusercontent.com/dmlc/web-data/master/mxnet/paper/graph.png" target="_blank" style="color:rgb(66,139,202);text-decoration:none;background:0px 0px;"><img src="https://raw.githubusercontent.com/dmlc/web-data/master/mxnet/paper/graph.png" alt="" style="border:0px;vertical-align:middle;"></a></p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">其中圆表示变量，方框表示操作子，箭头表示数据依赖关系。在执行之前，MXNet会对计算图进行优化，以及为所有变量提前申请空间。</p>
+<h4 style="font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-weight:500;line-height:1.1;color:rgb(51,51,51);margin-top:10px;margin-bottom:10px;font-size:18px;background-color:rgb(255,255,255);">计算图优化</h4>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">计算图优化已经在数据库等领域被研究多年，我们目前只探索了数个简单的方法。<br>
+1. 注意到我们提前申明了哪些输出变量是需要的，这样我们只需要计算这些输出需要的操作。例如，在预测时我们不需要计算梯度，所以整个backforward图都可以忽略。而在特征抽取中，我们可能只需要某些中间层的输出，从而可以忽略掉后面的计算。<br>
+2. 我们可以合并某些操作。例如 <em>a</em>b+1*只需要一个blas或者cuda函数即可，而不需要将其表示成两个操作。<br>
+3. 我们实现了一些“大”操作，例如一个卷积层就只需要一个操作子。这样我们可以大大减小计算图的大小，并且方便手动的对这个操作进行优化。</p>
+<h4 style="font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-weight:500;line-height:1.1;color:rgb(51,51,51);margin-top:10px;margin-bottom:10px;font-size:18px;background-color:rgb(255,255,255);">内存申请</h4>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">内存通常是一个重要的瓶颈，尤其是对GPU和智能设备而言。而神经网络计算时通常需要大量的临时空间，例如每个层的输入和输出变量。对每个变量都申请一段独立的空间会带来高额的内存开销。幸运的是，我们可以从计算图推断出所有变量的生存期，就是这个变量从创建到最后被使用的时间段，从而可以对两个不交叉的变量重复使用同一内存空间。这个问题在诸多领域，例如编译器的寄存器分配上，有过研究。然而最优的分配算法需要 <em>O(n2)</em> 时间复杂度，这里n是图中变量的个数。</p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">MXNet提供了两个启发式的策略，每个策略都是线性的复杂度。<br>
+1. inplace。在这个策略里，我们模拟图的遍历过程，并为每个变量维护一个还有多少其他变量需要它的计数。当我们发现某个变量的计数变成0时，我们便回收其内存空间。<br>
+2. co-share。我们允许两个变量使用同一段内存空间。这么做当然会使得这两个变量不能同时在写这段空间。所以我们只考虑对不能并行的变量进行co-share。每一次我们考虑图中的一条路（path），路上所有变量都有依赖关系所以不能被并行，然后我们对其进行内存分配并将它们从图中删掉。</p>
+<h3 style="font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-weight:500;line-height:1.1;color:rgb(51,51,51);margin-top:30px;margin-bottom:10px;font-size:24px;border-bottom-width:1px;border-bottom-style:dashed;border-bottom-color:rgb(221,221,221);background-color:rgb(255,255,255);">引擎</h3>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">在MXNet中，所有的任务，包括张量计算，symbol执行，数据通讯，都会交由引擎来执行。首先，所有的资源单元，例如NDArray，随机数生成器，和临时空间，都会在引擎处注册一个唯一的标签。然后每个提交给引擎的任务都会标明它所需要的资源标签。引擎则会跟踪每个资源，如果某个任务所需要的资源到到位了，例如产生这个资源的上一个任务已经完成了，那么引擎会则调度和执行这个任务。</p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">通常一个MXNet运行实例会使用多个硬件资源，包括CPU，GPU，PCIe通道，网络，和磁盘，所以引擎会使用多线程来调度，既任何两个没有资源依赖冲突的任务都可能会被并行执行，以求最大化资源利用。</p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">与通常的数据流引擎不同的是，MXNet的引擎允许一个任务修改现有的资源。为了保证调度正确性，提交任务时需要分开标明哪些资源是只读，哪些资源会被修改。这个附加的写依赖可以带来很多便利。例如我们可以方便实现在numpy以及其他张量库中常见的数组修改操作，同时也使得内存分配时更加容易，比如操作子可以修改其内部状态变量而不需要每次都重来内存。再次，假如我们要用同一个种子生成两个随机数，那么我们可以标注这两个操作会同时修改种子来使得引擎不会并行执行，从而使得代码的结果可以很好的被重复。</p>
+<h3 style="font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-weight:500;line-height:1.1;color:rgb(51,51,51);margin-top:30px;margin-bottom:10px;font-size:24px;border-bottom-width:1px;border-bottom-style:dashed;border-bottom-color:rgb(221,221,221);background-color:rgb(255,255,255);">数据通讯</h3>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">KVStore的实现是基于参数服务器。但它跟前面的工作有两个显著的区别。<br>
+1. 我们通过引擎来管理数据一致性，这使得参数服务器的实现变得相当简单，同时使得KVStore的运算可以无缝的与其他结合在一起。<br>
+2. 我们使用一个两层的通讯结构，原理如下图所示。第一层的服务器管理单机内部的多个设备之间的通讯。第二层服务器则管理机器之间通过网络的通讯。第一层的服务器在与第二层通讯前可能合并设备之间的数据来降低网络带宽消费。同时考虑到机器内和外通讯带宽和延时的不同性，我们可以对其使用不同的一致性模型。例如第一层我们用强的一致性模型，而第二层我们则使用弱的一致性模型来减少同步开销。</p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);"><a href="https://raw.githubusercontent.com/dmlc/web-data/master/mxnet/paper/ps.png" target="_blank" style="color:rgb(66,139,202);text-decoration:none;background:0px 0px;"><img src="https://raw.githubusercontent.com/dmlc/web-data/master/mxnet/paper/ps.png" alt="" style="border:0px;vertical-align:middle;"></a></p>
+<h3 style="font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-weight:500;line-height:1.1;color:rgb(51,51,51);margin-top:30px;margin-bottom:10px;font-size:24px;border-bottom-width:1px;border-bottom-style:dashed;border-bottom-color:rgb(221,221,221);background-color:rgb(255,255,255);">可移植性</h3>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">轻量和可移植性是MXNet的一个重要目标。MXNet核心使用C++实现，并提供C风格的头文件。因此方便系统移植，也使得其很容易被其他支持C FFI (forigen language interface )的语言调用。此外，我们也提供一个脚本将MXNet核心功能的代码连同所有依赖打包成一个单一的只有数万行的C++源文件，使得其在一些受限的平台，例如智能设备，方便编译和使用。</p>
+<h2 style="font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-weight:500;line-height:1.1;color:rgb(51,51,51);margin-top:30px;margin-bottom:10px;font-size:30px;border-bottom-width:1px;border-bottom-style:dashed;border-bottom-color:rgb(221,221,221);background-color:rgb(255,255,255);">实验结果</h2>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">这里我们提供一些早期的实验结果。</p>
+<h3 style="font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-weight:500;line-height:1.1;color:rgb(51,51,51);margin-top:30px;margin-bottom:10px;font-size:24px;border-bottom-width:1px;border-bottom-style:dashed;border-bottom-color:rgb(221,221,221);background-color:rgb(255,255,255);">与其他系统相比</h3>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">我们首先使用一个流行卷积网络测试方案来对比MXNet与Torch，Caffe和TensorFlow在过去几届imagenet竞赛冠军网络上的性能。每个系统使用同样的CUDA 7.0和CUDNN 3，但TensorFlow使用其只支持的CUDA 6.5 和CUDNN 2。我们使用单块GTX 980并报告单个forward和backward的耗时。</p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);"><a href="https://raw.githubusercontent.com/dmlc/web-data/master/mxnet/paper/time_forward_backward.png" target="_blank" style="color:rgb(66,139,202);text-decoration:none;background:0px 0px;"><img src="https://raw.githubusercontent.com/dmlc/web-data/master/mxnet/paper/time_forward_backward.png" alt="" style="border:0px;vertical-align:middle;display:block;margin-left:auto;margin-right:auto;"></a></p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">可以看出MXNet，Torch和Caffe三者在性能上不相上下。这个符合预期，因为在单卡上我们评测的几个网络的绝大部分运算都由CUDA和CUDNN完成。TensorFlow比其他三者都慢2倍以上，这可能由于是低版本的CUDNN和项目刚开源的缘故。</p>
+<h3 style="font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-weight:500;line-height:1.1;color:rgb(51,51,51);margin-top:30px;margin-bottom:10px;font-size:24px;border-bottom-width:1px;border-bottom-style:dashed;border-bottom-color:rgb(221,221,221);background-color:rgb(255,255,255);">内存的使用</h3>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">接下来我们考察不同的内存分配算法对内存占用的影响。下图分别表示使用batch=128时，在做预测时和做训练时的不同算法在内部变量（除去模型，最初输入和最终输出）上的内存开销。</p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);"><a href="https://raw.githubusercontent.com/dmlc/web-data/master/mxnet/paper/mem_forward.png" target="_blank" style="color:rgb(66,139,202);text-decoration:none;background:0px 0px;"><img src="https://raw.githubusercontent.com/dmlc/web-data/master/mxnet/paper/mem_forward.png" alt="" style="border:0px;vertical-align:middle;display:block;margin-left:auto;margin-right:auto;"></a><a href="https://raw.githubusercontent.com/dmlc/web-data/master/mxnet/paper/mem_forward_backward.png" target="_blank" style="color:rgb(66,139,202);text-decoration:none;background:0px 0px;"><img src="https://raw.githubusercontent.com/dmlc/web-data/master/mxnet/paper/mem_forward_backward.png" alt="" style="border:0px;vertical-align:middle;display:block;margin-left:auto;margin-right:auto;"></a></p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">可以看出，inplace和co-share两者都可以极大的降低内存使用。将两者合起来可以在训练时减少2倍内存使用，在预测时则可以减小4倍内存使用。特别的，即使是最复杂的vggnet，对单张图片进行预测时，MXNet只需要16MB额外内存。</p>
+<h3 style="font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-weight:500;line-height:1.1;color:rgb(51,51,51);margin-top:30px;margin-bottom:10px;font-size:24px;border-bottom-width:1px;border-bottom-style:dashed;border-bottom-color:rgb(221,221,221);background-color:rgb(255,255,255);">Scalability</h3>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">最后我们报告在分布式训练下的性能。我们使用imagenet 1k数据（120万224x224x3图片，1000类），并用googlenet加上batch normalization来训练。我们使用Amazon EC2 g2.8x，单机和多机均使用同样的参数，下图表示了使用单机和10台g2.8x时的收敛情况。</p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);"><a href="https://raw.githubusercontent.com/dmlc/web-data/master/mxnet/image/inception-with-bn-imagnet1k.png" target="_blank" style="color:rgb(66,139,202);text-decoration:none;background:0px 0px;"><img src="https://raw.githubusercontent.com/dmlc/web-data/master/mxnet/image/inception-with-bn-imagnet1k.png" alt="" style="border:0px;vertical-align:middle;"></a></p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">从训练精度来看，单机的收敛比多机快，这个符合预期，因为多机时有效的batch大小比单机要大，在处理同样多的数据上收敛通常会慢。但有意思的是两者在测试精度上非常相似。</p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">单机下每遍历一次数据需要1万4千秒，而在十台机器上，每次只需要1千4百秒。如果考虑运行时间对比测试精度，10台机器带来了10倍的提升。</p>
+<h2 style="font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-weight:500;line-height:1.1;color:rgb(51,51,51);margin-top:30px;margin-bottom:10px;font-size:30px;border-bottom-width:1px;border-bottom-style:dashed;border-bottom-color:rgb(221,221,221);background-color:rgb(255,255,255);">过去，现状，和未来</h2>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">大半年前我们拉来数个优秀的C++机器学习系统的开发人员成立了DMLC，本意是更方便共享各自项目的代码，并给用户提供一致的体验。当时我们有两个深度学习的项目，一个是CXXNet，其通过配置来定义和训练神经网络。另一个是Minerva，提供类似numpy一样的张量计算接口。前者在图片分类等使用卷积网络上很方便，而后者更灵活。那时候我们想要能不能一个两者功能都具备的系统，于是这样就有了MXNet。其名字来自Minerva的M和CXXNet的XNet。其中Symbol的想法来自CXXNet，而NDArray的想法来自Minerva。我们也常把MXNet叫“mix net”。</p>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">MXNet是DMLC第一个结合了所有的成员努力的项目，也同时吸引了很多核心成员的加入。MXNet目的是做一个有意思的系统，能够让大家用着方便的系统，一个轻量的和可以快速测试系统和算法想法的系统。对于未来，我们主要关注下面四个方向：</p>
+<ol style="margin-top:0px;margin-bottom:10px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">
+<li style="margin-top:5px;">支持更多的硬件，我们目前在积极考虑支持AMD GPU，高通GPU，Intel Phi，FPGA，和更多智能设备。相信MXNet的轻量和内存节省可以在这些上大有作为。</li>
+<li style="margin-top:5px;">更加完善的操作子。目前不论是Symbol还是NDArray支持的操作还是有限，我们希望能够尽快的扩充他们。</li>
+<li style="margin-top:5px;">更多编程语言。除了C++，目前MXNet对Python，R和Julia的支持比较完善。但我们希望还能有很多的语言，例如javascript。</li>
+<li style="margin-top:5px;">
+<p style="margin-bottom:10px;">更的应用。我们之前花了很多精力在图片分类上，下面我们会考虑很多的应用。例如上周我们试了下如何利用一张图片的风格和一张图片的内容合成一张新图片。下图是利用我办公室窗景和梵高的starry night来合成图片</p>
+<p style="margin-bottom:10px;"><a href="https://github.com/dmlc/web-data/raw/master/mxnet/neural-style/input/IMG_4343.jpg" target="_blank" style="color:rgb(66,139,202);text-decoration:none;background:0px 0px;"><img src="https://github.com/dmlc/web-data/raw/master/mxnet/neural-style/input/IMG_4343.jpg" alt="" width="300" style="border:0px;vertical-align:middle;display:block;margin-left:auto;margin-right:auto;"></a><a href="https://github.com/dmlc/web-data/raw/master/mxnet/neural-style/input/starry_night.jpg" target="_blank" style="color:rgb(66,139,202);text-decoration:none;background:0px 0px;"><img src="https://github.com/dmlc/web-data/raw/master/mxnet/neural-style/input/starry_night.jpg" alt="" width="300" style="border:0px;vertical-align:middle;display:block;margin-left:auto;margin-right:auto;"></a></p>
+<p style="margin-bottom:10px;"><a href="https://github.com/dmlc/web-data/raw/master/mxnet/neural-style/output/4343_starry_night.jpg" target="_blank" style="color:rgb(66,139,202);text-decoration:none;background:0px 0px;"><img src="https://github.com/dmlc/web-data/raw/master/mxnet/neural-style/output/4343_starry_night.jpg" alt="" width="600" style="border:0px;vertical-align:middle;"></a></p>
+<p style="margin-bottom:10px;">接下来我们希望能够在更多应用，例如语音，翻译，问答，上有所产出。</p>
+</li>
+</ol>
+<p style="margin-top:20px;margin-bottom:20px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">我们忠心希望MXNet能为大家做深度学习相关研究和应用带来便利。也希望能与更多的开发者一起学习和进步。</p>
+<h2 style="font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-weight:500;line-height:1.1;color:rgb(51,51,51);margin-top:30px;margin-bottom:10px;font-size:30px;border-bottom-width:1px;border-bottom-style:dashed;border-bottom-color:rgb(221,221,221);background-color:rgb(255,255,255);">扩展阅读</h2>
+<ol style="margin-top:0px;margin-bottom:10px;color:rgb(51,51,51);font-family:'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;font-size:16px;line-height:27.2px;background-color:rgb(255,255,255);">
+<li style="margin-top:5px;">此文大部分内容已经发表在NIPS LearningSys 2016上，<a href="https://github.com/dmlc/mxnet/issues/mxnet-learning-sys.pdf" style="color:rgb(66,139,202);text-decoration:none;background:0px 0px;">paper link</a>
+</li>
+<li style="margin-top:5px;">本文只是对MXNet各个部件做了初步的介绍，更多文档参见 <a href="http://mxnet.readthedocs.org/en/latest/index.html" style="color:rgb(66,139,202);text-decoration:none;background:0px 0px;">MXNet/doc</a>
+</li>
+<li style="margin-top:5px;">本文实验代码均在 <a href="https://github.com/dmlc/mxnet/tree/master/example" style="color:rgb(66,139,202);text-decoration:none;background:0px 0px;">MXNet/example</a>
+</li>
+</ol>
+</div>
+                    
+                </div>
+
+                <div class="article-copyright">
+                    <p class="article-copyright-info">
+                        <b>版权声明：</b><span>本文内容由阿里云实名注册用户自发贡献，版权归原作者所有，阿里云开发者社区不拥有其著作权，亦不承担相应法律责任。具体规则请查看《<a style="color:#ff6a00" target="_blank" href="https://developer.aliyun.com/article/768092">阿里云开发者社区用户服务协议</a>》和《<a style="color:#ff6a00" target="_blank" href="https://developer.aliyun.com/article/768093">阿里云开发者社区知识产权保护指引</a>》。如果您发现本社区中有涉嫌抄袭的内容，填写<a target="_blank" style="color:#ff6a00" href="https://yida.alibaba-inc.com/o/right">侵权投诉表单</a>进行举报，一经查实，本社区将立刻删除涉嫌侵权内容。</span></p>
+                </div>
+
+                <div class="article-tags">
+                    <span class="tag-item"><a target="_blank" href="/label/sc/article_de-3-100042">机器学习/深度学习</a></span>
+                    <span class="tag-item"><a target="_blank" href="/label/sc/article_de-3-100255">算法</a></span>
+                    <span class="tag-item"><a target="_blank" href="/label/sc/article_de-3-100049">算法框架/工具</a></span>
+                    <span class="tag-item"><a target="_blank" href="/label/sc/article_de-3-100060">异构计算</a></span>
+                    <span class="tag-item"><a target="_blank" href="/label/sc/article_de-3-100008">Python</a></span>
+                </div>
+                <div class="article-keywords">
+                    <span class="keyword-item"><a target="_blank" href="https://www.aliyun.com/sswc/55975.html">异构计算深度学习</a></span>
+                    <span class="keyword-item"><a target="_blank" href="https://www.aliyun.com/sswc/308813.html">github深度学习框架</a></span>
+                    <span class="keyword-item"><a target="_blank" href="https://www.aliyun.com/sswc/9671.html">python深度学习</a></span>
+                    <span class="keyword-item"><a target="_blank" href="https://www.aliyun.com/sswc/635868.html">python深度学习学习</a></span>
+                    <span class="keyword-item"><a target="_blank" href="https://www.aliyun.com/sswc/58810.html">python深度学习代码</a></span>
+                </div>
+                <div class="group-list">
+                    <a href="/" target="_blank" class="group-nav">开发者社区</a> >
+                    <span class="keyword-item">
+                        <a target="_blank" href="/group/ai/">人工智能</a>
+                        <span> > </span>
+                        <a target="_blank" href="/group/ai/article/">文章</a>
+                    </span>
+                </div>
+            </div>
+
+            
+
+            <div class="article-follows">
+                <div class="article-follows-title"></div>
+                <div class="article-follows-list"></div>
+            </div>
+
+            <div class="right-item-box highscore-box highscore-box-h5">
+    <div class="right-item-title">
+        <div class="right-item-title-text">作者高分内容</div>
+        <a target="_blank" class="right-item-title-link" href="/profile/sedsy6ctk3hke">更多</a>
+    </div>
+    <div class="highscore-article-list">
+        <a target="_blank" href="https://developer.aliyun.com/article/744311" class="highscore-article-item">
+            <span class="highscore-article-item-title">服务社区抗疫软件与智能外呼机器人！我们已经准备好了</span>
+            <span class="highscore-article-item-red">16588</span>
+        </a>
+        <a target="_blank" href="https://developer.aliyun.com/article/743330" class="highscore-article-item">
+            <span class="highscore-article-item-title">钉钉新上线“员工健康”服务， 面向所有企业免费</span>
+            <span class="highscore-article-item-red">1700</span>
+        </a>
+        <a target="_blank" href="https://developer.aliyun.com/article/743311" class="highscore-article-item">
+            <span class="highscore-article-item-title">汇总！如何高效利用阿里巴巴的“战疫情”方案与工具包</span>
+            <span class="highscore-article-item-red">2891</span>
+        </a>
+        <a target="_blank" href="https://developer.aliyun.com/article/715436" class="highscore-article-item">
+            <span class="highscore-article-item-title">阿里云开发者社区（阿里技术）志愿者招募</span>
+            <span class="highscore-article-item-red">12925</span>
+        </a>
+        <a target="_blank" href="https://developer.aliyun.com/article/707332" class="highscore-article-item">
+            <span class="highscore-article-item-title">新的技术创时代已经到来，一起走向未来！</span>
+            <span class="highscore-article-item-red">764</span>
+        </a>
+    </div>
+</div>
+
+            <div class="article-comment">
+                <div id="comment"></div>
+            </div>
+            <div class="article-feed">
+                <div class="article-feed-title">相关文章</div>
+               <div class="article-feed-list">
+                    <div>
+    <div data-id="yq-article752646" class="feed-item">
+        <div class="feed-item-content">
+            <a class="feed-item-img" target="_blank" href="/article/752646">
+                
+            </a>
+            <div class="feed-item-top">
+                <div class="feed-item-author-box">
+                    <img class="author-img" alt="" src="https://ucc.alicdn.com/avatar/15c6935d4c724e8a872cdacbae35ca78.png" />
+                    
+                    
+                </div>
+
+                <div class="feed-item-top-title">
+                    <a class="feed-item-top-title-link" target="_blank" href="/profile/n7uauxtt2sut6">云栖号资讯小哥</a>
+                    <span class="feed-item-top-title-split"></span>
+                    <span></span>
+                </div>
+            </div>
+            <a class="feed-item-title" target="_blank" href="/article/752646">
+                <span>GitHub Actions 的机器学习推理上线，推进测试部署高度自动化</span>
+            </a>
+            <div class="feed-item-desc">在看到最近新推出的 GitHub Actions 后，我的第一个想法是创建一个简单的示例项目，在这个项目中，我们“部署”一个使用了这个新特性的机器学习模型。当然，这不是一个“真正的部署”，但是可用此模型在存储库中测试你的模型，而不需要任何额外的编码。</div>
+            <div class="feed-item-bot">
+                <div class="feed-item-info">
+                    <span class="feed-item-label feed-item-count">495</span>
+                    <span class="feed-item-label feed-item-comment" data-id="752646">0</span>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <div data-id="yq-article792605" class="feed-item includeimg">
+        <div class="feed-item-content">
+            <a class="feed-item-img" target="_blank" href="/article/792605">
+                <img class="img" alt="" src="https://jiangs.me/upload/2021/08/image-35f47ac9af154f05bc9a3daa2153ce62.png?x-oss-process=image/resize,h_118" />
+            </a>
+            <div class="feed-item-top">
+                <div class="feed-item-author-box">
+                    <img class="author-img" alt="" src="https://ucc.alicdn.com/avatar/acf63ac67a57411aaaa4ba74e7deb9a2.jpg" />
+                    
+                    
+                </div>
+
+                <div class="feed-item-top-title">
+                    <a class="feed-item-top-title-link" target="_blank" href="/profile/2fnhnulpcvawk">小蓝胖子</a>
+                    <span class="feed-item-top-title-split"></span>
+                    <span></span>
+                </div>
+            </div>
+            <a class="feed-item-title" target="_blank" href="/article/792605">
+                <span>DataHub：流行的元数据架构介绍</span>
+            </a>
+            <div class="feed-item-desc">时至今日，我们正生活在数据的黄金时代。当数据科学家加入数据驱动型公司时，他们希望找到一种数据发现工具（即数据目录），可以用来找出公司中存在哪些数据集，以及如何使用这些数据集来测试新假设和产生新见解。大多数数据科学家并不真正关心这个工具在幕后是如何工作的，只要它能使他们富有成效。</div>
+            <div class="feed-item-bot">
+                <div class="feed-item-info">
+                    <span class="feed-item-label feed-item-count">169</span>
+                    <span class="feed-item-label feed-item-comment" data-id="792605">0</span>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <div data-id="yq-article278538" class="feed-item">
+        <div class="feed-item-content">
+            <a class="feed-item-img" target="_blank" href="/article/278538">
+                
+            </a>
+            <div class="feed-item-top">
+                <div class="feed-item-author-box">
+                    <img class="author-img" alt="" src="https://ucc.alicdn.com/avatar/img_70096265da38d2c0ecdf90b21ec784a9.png" />
+                    
+                    
+                </div>
+
+                <div class="feed-item-top-title">
+                    <a class="feed-item-top-title-link" target="_blank" href="/profile/4rn5qjzc6gura">宝珠</a>
+                    <span class="feed-item-top-title-split"></span>
+                    <span></span>
+                </div>
+            </div>
+            <a class="feed-item-title" target="_blank" href="/article/278538">
+                <span>初步学习Swing</span>
+            </a>
+            <div class="feed-item-desc">
+                                                  一直就想学习java的桌面编程，可惜直到现在因为是在unix上的原因并不需要java程序有界面，不过自己还是想好好学习学习。</div>
+            <div class="feed-item-bot">
+                <div class="feed-item-info">
+                    <span class="feed-item-label feed-item-count">672</span>
+                    <span class="feed-item-label feed-item-comment" data-id="278538">0</span>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <div data-id="yq-article420868" class="feed-item">
+        <div class="feed-item-content">
+            <a class="feed-item-img" target="_blank" href="/article/420868">
+                
+            </a>
+            <div class="feed-item-top">
+                <div class="feed-item-author-box">
+                    <img class="author-img" alt="" src="https://ucc.alicdn.com/avatar/avatar3.jpg" />
+                    
+                    
+                </div>
+
+                <div class="feed-item-top-title">
+                    <a class="feed-item-top-title-link" target="_blank" href="/profile/grng7az2sxifq">技术小阿哥</a>
+                    <span class="feed-item-top-title-split"></span>
+                    <span></span>
+                </div>
+            </div>
+            <a class="feed-item-title" target="_blank" href="/article/420868">
+                <span>DLNA&amp;UPnP开发笔记（4）— PlatinumKit库介绍</span>
+            </a>
+            <div class="feed-item-desc"></div>
+            <div class="feed-item-bot">
+                <div class="feed-item-info">
+                    <span class="feed-item-label feed-item-count">1532</span>
+                    <span class="feed-item-label feed-item-comment" data-id="420868">0</span>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <div data-id="yq-article418847" class="feed-item">
+        <div class="feed-item-content">
+            <a class="feed-item-img" target="_blank" href="/article/418847">
+                
+            </a>
+            <div class="feed-item-top">
+                <div class="feed-item-author-box">
+                    <img class="author-img" alt="" src="https://ucc.alicdn.com/avatar/avatar3.jpg" />
+                    
+                    
+                </div>
+
+                <div class="feed-item-top-title">
+                    <a class="feed-item-top-title-link" target="_blank" href="/profile/bnch2y3za6tla">技术小胖子</a>
+                    <span class="feed-item-top-title-split"></span>
+                    <span></span>
+                </div>
+            </div>
+            <a class="feed-item-title" target="_blank" href="/article/418847">
+                <span>perl中Net::FTP帮助文档</span>
+            </a>
+            <div class="feed-item-desc"></div>
+            <div class="feed-item-bot">
+                <div class="feed-item-info">
+                    <span class="feed-item-label feed-item-count">1057</span>
+                    <span class="feed-item-label feed-item-comment" data-id="418847">0</span>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <div data-id="yq-article581637" class="feed-item">
+        <div class="feed-item-content">
+            <a class="feed-item-img" target="_blank" href="/article/581637">
+                
+            </a>
+            <div class="feed-item-top">
+                <div class="feed-item-author-box">
+                    <img class="author-img" alt="" src="https://ucc.alicdn.com/avatar/avatar3.jpg" />
+                    
+                    
+                </div>
+
+                <div class="feed-item-top-title">
+                    <a class="feed-item-top-title-link" target="_blank" href="/profile/5m4kk67c65aqq">【方向】</a>
+                    <span class="feed-item-top-title-split"></span>
+                    <span></span>
+                </div>
+            </div>
+            <a class="feed-item-title" target="_blank" href="/article/581637">
+                <span>TensorFlow新功能：TensorFlow Probability概率编程工具箱介绍</span>
+            </a>
+            <div class="feed-item-desc">2018年，tensorflow开发者峰会上，tensorflow管理人员发布了：TensorFlow Probability——一种概率编程工具箱，用于机器学习研究人员和从业人员快速可靠地构建利用最先进硬件的复杂模型。快来学习一下吧～</div>
+            <div class="feed-item-bot">
+                <div class="feed-item-info">
+                    <span class="feed-item-label feed-item-count">3344</span>
+                    <span class="feed-item-label feed-item-comment" data-id="581637">0</span>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <div data-id="yq-article368649" class="feed-item">
+        <div class="feed-item-content">
+            <a class="feed-item-img" target="_blank" href="/article/368649">
+                
+            </a>
+            <div class="feed-item-top">
+                <div class="feed-item-author-box">
+                    <img class="author-img" alt="" src="https://ucc.alicdn.com/avatar/avatar3.jpg" />
+                    
+                    
+                </div>
+
+                <div class="feed-item-top-title">
+                    <a class="feed-item-top-title-link" target="_blank" href="/profile/anqf53xdhh556">史迪奇2号</a>
+                    <span class="feed-item-top-title-split"></span>
+                    <span></span>
+                </div>
+            </div>
+            <a class="feed-item-title" target="_blank" href="/article/368649">
+                <span>MapGuide应用开发系列（三）----MapGuide 数据包管理及Maestro亮点功能介绍</span>
+            </a>
+            <div class="feed-item-desc"></div>
+            <div class="feed-item-bot">
+                <div class="feed-item-info">
+                    <span class="feed-item-label feed-item-count">1818</span>
+                    <span class="feed-item-label feed-item-comment" data-id="368649">0</span>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <div data-id="yq-article314372" class="feed-item">
+        <div class="feed-item-content">
+            <a class="feed-item-img" target="_blank" href="/article/314372">
+                
+            </a>
+            <div class="feed-item-top">
+                <div class="feed-item-author-box">
+                    <img class="author-img" alt="" src="https://ucc.alicdn.com/avatar/img_6e8134d8b2a5e87fad2df81537bb787c.png" />
+                    
+                    
+                </div>
+
+                <div class="feed-item-top-title">
+                    <a class="feed-item-top-title-link" target="_blank" href="/profile/riqb34zepu672">芝麻软件</a>
+                    <span class="feed-item-top-title-split"></span>
+                    <span></span>
+                </div>
+            </div>
+            <a class="feed-item-title" target="_blank" href="/article/314372">
+                <span>C# .net中cookie值为中文时的乱码解决方法</span>
+            </a>
+            <div class="feed-item-desc">一.cookie的名称或子cookie的名称不能为中文,否则无法获得cookie
+这个好办,名称不用中文即可
+二.cookie的值为中文时候,取cookie的值会出现乱码
+解决办法:存取cookie时候先解码和编码
+存cookie,进行编码:
+cookie.</div>
+            <div class="feed-item-bot">
+                <div class="feed-item-info">
+                    <span class="feed-item-label feed-item-count">828</span>
+                    <span class="feed-item-label feed-item-comment" data-id="314372">0</span>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <div data-id="yq-article66582" class="feed-item">
+        <div class="feed-item-content">
+            <a class="feed-item-img" target="_blank" href="/article/66582">
+                
+            </a>
+            <div class="feed-item-top">
+                <div class="feed-item-author-box">
+                    <img class="author-img" alt="" src="https://ucc.alicdn.com/avatar/img_1b01fe2176a4addc66f2795331fe7b03.jpg" />
+                    
+                    
+                </div>
+
+                <div class="feed-item-top-title">
+                    <a class="feed-item-top-title-link" target="_blank" href="/profile/bdnpegfdc3nqw">捷讯技术17</a>
+                    <span class="feed-item-top-title-split"></span>
+                    <span></span>
+                </div>
+            </div>
+            <a class="feed-item-title" target="_blank" href="/article/66582">
+                <span>阿里云湖北区域服务提供商：阿里云CDN功能介绍</span>
+            </a>
+            <div class="feed-item-desc">阿里云湖北区域服务提供商官方唯一指定武汉捷讯技术。关于阿里云CDN功能介绍如下</div>
+            <div class="feed-item-bot">
+                <div class="feed-item-info">
+                    <span class="feed-item-label feed-item-count">2592</span>
+                    <span class="feed-item-label feed-item-comment" data-id="66582">0</span>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <div data-id="yq-article521239" class="feed-item">
+        <div class="feed-item-content">
+            <a class="feed-item-img" target="_blank" href="/article/521239">
+                
+            </a>
+            <div class="feed-item-top">
+                <div class="feed-item-author-box">
+                    <img class="author-img" alt="" src="https://ucc.alicdn.com/avatar/avatar3.jpg" />
+                    
+                    
+                </div>
+
+                <div class="feed-item-top-title">
+                    <a class="feed-item-top-title-link" target="_blank" href="/profile/bnch2y3za6tla">技术小胖子</a>
+                    <span class="feed-item-top-title-split"></span>
+                    <span></span>
+                </div>
+            </div>
+            <a class="feed-item-title" target="_blank" href="/article/521239">
+                <span>gitlab项目成员权限--中文</span>
+            </a>
+            <div class="feed-item-desc"></div>
+            <div class="feed-item-bot">
+                <div class="feed-item-info">
+                    <span class="feed-item-label feed-item-count">2837</span>
+                    <span class="feed-item-label feed-item-comment" data-id="521239">0</span>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="right-box">
+            <div class="right-item-box author-box">
+    <div class="right-item-box author-box">
+        <div class="author-info">
+            <div class="author-left">
+                <div class="author-img-box">
+                    <a target="_blank" href="/profile/sedsy6ctk3hke">
+                        <img class="author-img" src="https://ucc.alicdn.com/avatar/c3b96ae488ab46c8b800f367386d6e87.jpg" />
+                    </a>
+                    
+                </div>
+                <div class="author-left-btn">+关注</div>
+            </div>
+            <div class="author-right">
+                <a target="_blank" class="author-right-name" href="/profile/sedsy6ctk3hke">云篆</a>
+                <div class="author-right-desc">阿里云开发者社区运营负责人。原云栖社区负责人。</div>
+            </div>
+        </div>
+        <div class="author-data">
+            <div class="author-data-article">
+                <div class="author-data-num">90</div>
+                <div class="author-data-text">文章</div>
+            </div>
+            <div class="author-data-ask">
+                <div class="author-data-num">300</div>
+                <div class="author-data-text">问答</div>
+            </div>
+            <!--
+            <div class="author-data-fans">
+                <div class="author-data-num">999999</div>
+                <div class="author-data-text">粉丝</div>
+            </div> -->
+        </div>
+    </div>
+</div>
+            <div class="right-item-box highscore-box">
+    <div class="right-item-title">
+        <div class="right-item-title-text">作者高分内容</div>
+        <a target="_blank" class="right-item-title-link" href="/profile/sedsy6ctk3hke">更多</a>
+    </div>
+    <div class="highscore-article-list">
+        <a target="_blank" href="https://developer.aliyun.com/article/744311" class="highscore-article-item">
+            <span class="highscore-article-item-title">服务社区抗疫软件与智能外呼机器人！我们已经准备好了</span>
+            <span class="highscore-article-item-red">16588</span>
+        </a>
+        <a target="_blank" href="https://developer.aliyun.com/article/743330" class="highscore-article-item">
+            <span class="highscore-article-item-title">钉钉新上线“员工健康”服务， 面向所有企业免费</span>
+            <span class="highscore-article-item-red">1700</span>
+        </a>
+        <a target="_blank" href="https://developer.aliyun.com/article/743311" class="highscore-article-item">
+            <span class="highscore-article-item-title">汇总！如何高效利用阿里巴巴的“战疫情”方案与工具包</span>
+            <span class="highscore-article-item-red">2891</span>
+        </a>
+        <a target="_blank" href="https://developer.aliyun.com/article/715436" class="highscore-article-item">
+            <span class="highscore-article-item-title">阿里云开发者社区（阿里技术）志愿者招募</span>
+            <span class="highscore-article-item-red">12925</span>
+        </a>
+        <a target="_blank" href="https://developer.aliyun.com/article/707332" class="highscore-article-item">
+            <span class="highscore-article-item-title">新的技术创时代已经到来，一起走向未来！</span>
+            <span class="highscore-article-item-red">764</span>
+        </a>
+    </div>
+</div>
+            
+            <div class="right-item-box rank-box">
+    <div class="right-item-title">
+        <div class="right-item-title-text">文章排行榜</div>
+        <div class="rank-tab">
+            <div class="rank-tab-item active">最热</div>
+            <div class="rank-tab-item">最新</div>
+        </div>
+    </div>
+    <div class="rank-list">
+        <div class="rank-swiper-box active">
+            <div class="swiper-container swiper-hot-rank-container">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/834427">
+                            <span class="swiper-slide-link-num">1</span>
+                            <span class="swiper-slide-link-text">免费下载|《Top20低代码实践案例》独家上线 数据互通、降本提效、企业数字化变身的秘密都在这里！</span>
+                            <span class="swiper-slide-link-view">168526</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/841053">
+                            <span class="swiper-slide-link-num">2</span>
+                            <span class="swiper-slide-link-text">13个实验带你玩转MaxCompute SQL之JSON操作</span>
+                            <span class="swiper-slide-link-view">161078</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/826593">
+                            <span class="swiper-slide-link-num">3</span>
+                            <span class="swiper-slide-link-text">实战：使用Spring Boot Admin实现运维监控平台</span>
+                            <span class="swiper-slide-link-view">121793</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/840749">
+                            <span class="swiper-slide-link-num">4</span>
+                            <span class="swiper-slide-link-text">阿里云丨洛神·云网络 发布业界首本《云计算公网质量白皮书》</span>
+                            <span class="swiper-slide-link-view">34480</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/830581">
+                            <span class="swiper-slide-link-num">5</span>
+                            <span class="swiper-slide-link-text">深入浅出时序数据库 – 智能互联系统基础设施</span>
+                            <span class="swiper-slide-link-view">21569</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/829636">
+                            <span class="swiper-slide-link-num">6</span>
+                            <span class="swiper-slide-link-text">我与阿里云IoT的故事</span>
+                            <span class="swiper-slide-link-view">20620</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/839715">
+                            <span class="swiper-slide-link-num">7</span>
+                            <span class="swiper-slide-link-text">独家下载！认知智能大咖观点最新出炉！带你揭秘强大技术背后的影响力！</span>
+                            <span class="swiper-slide-link-view">14515</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/832594">
+                            <span class="swiper-slide-link-num">8</span>
+                            <span class="swiper-slide-link-text">认证故事|我与阿里云认证的故事#学考故事</span>
+                            <span class="swiper-slide-link-view">110171</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/818190">
+                            <span class="swiper-slide-link-num">9</span>
+                            <span class="swiper-slide-link-text">信不信十分钟让你彻底搞懂java反射</span>
+                            <span class="swiper-slide-link-view">15549</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/817637">
+                            <span class="swiper-slide-link-num">10</span>
+                            <span class="swiper-slide-link-text">一个demo让你彻底理解线程池工作流程</span>
+                            <span class="swiper-slide-link-view">16092</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/799787">
+                            <span class="swiper-slide-link-num">11</span>
+                            <span class="swiper-slide-link-text">印象最深的一个bug——排查修复问题事件BEX引发的谷歌浏览器闪退崩溃异常</span>
+                            <span class="swiper-slide-link-view">28567</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/816695">
+                            <span class="swiper-slide-link-num">12</span>
+                            <span class="swiper-slide-link-text">synchronized底层实现原理（保证看懂）</span>
+                            <span class="swiper-slide-link-view">14911</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/816538">
+                            <span class="swiper-slide-link-num">13</span>
+                            <span class="swiper-slide-link-text">redis淘汰策略及3.x与4.x区别</span>
+                            <span class="swiper-slide-link-view">14868</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/816649">
+                            <span class="swiper-slide-link-num">14</span>
+                            <span class="swiper-slide-link-text">String str = new String(“abc“)到底new了几个对象</span>
+                            <span class="swiper-slide-link-view">14701</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/816901">
+                            <span class="swiper-slide-link-num">15</span>
+                            <span class="swiper-slide-link-text">八旬老人废寝忘食，只为学会Java快速排序，今天他终于学会了</span>
+                            <span class="swiper-slide-link-view">14503</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/816922">
+                            <span class="swiper-slide-link-num">16</span>
+                            <span class="swiper-slide-link-text">二叉树的三种遍历方式，含demo（递归与非递归）</span>
+                            <span class="swiper-slide-link-view">14440</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/800322">
+                            <span class="swiper-slide-link-num">17</span>
+                            <span class="swiper-slide-link-text">并发编程实践之公平有界阻塞队列实现</span>
+                            <span class="swiper-slide-link-view">30283</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/817558">
+                            <span class="swiper-slide-link-num">18</span>
+                            <span class="swiper-slide-link-text">java睡眠排序</span>
+                            <span class="swiper-slide-link-view">14284</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/829641">
+                            <span class="swiper-slide-link-num">19</span>
+                            <span class="swiper-slide-link-text">新手建站就用这个方法，无需购买服务器10分钟快速部署你的静态网页</span>
+                            <span class="swiper-slide-link-view">14768</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/807752">
+                            <span class="swiper-slide-link-num">20</span>
+                            <span class="swiper-slide-link-text">阿里云发布云原生加速器，携手生态企业拥抱数字时代</span>
+                            <span class="swiper-slide-link-view">15248</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-pagination swiper-hot-rank-pagination"></div>
+        </div>
+        <div class="rank-swiper-box">
+            <div class="swiper-container swiper-new-rank-container">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/859454">
+                            <span class="swiper-slide-link-num">1</span>
+                            <span class="swiper-slide-link-text">关于“冬季实战营第一期”的学习报告</span>
+                            <span class="swiper-slide-link-view">68</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/859420">
+                            <span class="swiper-slide-link-num">2</span>
+                            <span class="swiper-slide-link-text">工商银行实时大数据平台建设历程及展望</span>
+                            <span class="swiper-slide-link-view">281</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/859388">
+                            <span class="swiper-slide-link-num">3</span>
+                            <span class="swiper-slide-link-text">产业白热化竞争来临，看人工智能如何带动经济数智化发展</span>
+                            <span class="swiper-slide-link-view">67</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/859358">
+                            <span class="swiper-slide-link-num">4</span>
+                            <span class="swiper-slide-link-text">冬季实战营第一期：从零到一上手玩转云服务器</span>
+                            <span class="swiper-slide-link-view">1422</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/859354">
+                            <span class="swiper-slide-link-num">5</span>
+                            <span class="swiper-slide-link-text">学习报告——冬季实战营第一期：从零到一上手玩转云服务器</span>
+                            <span class="swiper-slide-link-view">59</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/859313">
+                            <span class="swiper-slide-link-num">6</span>
+                            <span class="swiper-slide-link-text">来更快的Maven了，我的天，速度提升了8倍！（1）</span>
+                            <span class="swiper-slide-link-view">56</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/859121">
+                            <span class="swiper-slide-link-num">7</span>
+                            <span class="swiper-slide-link-text">征文投稿丨使用轻量应用服务器搭建扫码测试项目</span>
+                            <span class="swiper-slide-link-view">77</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/859086">
+                            <span class="swiper-slide-link-num">8</span>
+                            <span class="swiper-slide-link-text">谈谈前端水印实现的几种方式</span>
+                            <span class="swiper-slide-link-view">65</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/859070">
+                            <span class="swiper-slide-link-num">9</span>
+                            <span class="swiper-slide-link-text">Datastream 开发打包问题</span>
+                            <span class="swiper-slide-link-view">69</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/859064">
+                            <span class="swiper-slide-link-num">10</span>
+                            <span class="swiper-slide-link-text">2021云上架构与运维峰会演讲合集</span>
+                            <span class="swiper-slide-link-view">72</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/859052">
+                            <span class="swiper-slide-link-num">11</span>
+                            <span class="swiper-slide-link-text">项目中如何优雅的消除if-else</span>
+                            <span class="swiper-slide-link-view">96</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/859020">
+                            <span class="swiper-slide-link-num">12</span>
+                            <span class="swiper-slide-link-text">零基础如何上手APICloud App、小程序多端开发</span>
+                            <span class="swiper-slide-link-view">53</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/858947">
+                            <span class="swiper-slide-link-num">13</span>
+                            <span class="swiper-slide-link-text">使用无影云当做自己的第二台电脑</span>
+                            <span class="swiper-slide-link-view">51</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/858925">
+                            <span class="swiper-slide-link-num">14</span>
+                            <span class="swiper-slide-link-text">初识阿里云E-MapReduce ClickHouse，到底有哪些优势？</span>
+                            <span class="swiper-slide-link-view">94</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/858924">
+                            <span class="swiper-slide-link-num">15</span>
+                            <span class="swiper-slide-link-text">自建Hadoop集群 VS 阿里云EMR，差距居然这么大？</span>
+                            <span class="swiper-slide-link-view">93</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/858923">
+                            <span class="swiper-slide-link-num">16</span>
+                            <span class="swiper-slide-link-text">阿里云EMR到底是什么？一图带你深入了解！</span>
+                            <span class="swiper-slide-link-view">95</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/858918">
+                            <span class="swiper-slide-link-num">17</span>
+                            <span class="swiper-slide-link-text">一图看懂 | 2021阿里云混合云的高能时刻</span>
+                            <span class="swiper-slide-link-view">87</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/858904">
+                            <span class="swiper-slide-link-num">18</span>
+                            <span class="swiper-slide-link-text">农民工玩转无影云电脑</span>
+                            <span class="swiper-slide-link-view">121</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/858899">
+                            <span class="swiper-slide-link-num">19</span>
+                            <span class="swiper-slide-link-text">“Haas物联网设备云端一体极客大赛”入选2021中国最受开发者欢迎技术活动</span>
+                            <span class="swiper-slide-link-view">73</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/858897">
+                            <span class="swiper-slide-link-num">20</span>
+                            <span class="swiper-slide-link-text">30人的产研团队如何高效协同？</span>
+                            <span class="swiper-slide-link-view">197</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-pagination swiper-new-rank-pagination"></div>
+        </div>
+    </div>
+</div>
+            <div class="right-item-box recommend-box">
+    <div class="right-item-title">
+        <div class="right-item-title-text">推荐文章</div>
+    </div>
+    <div class="recommend-list">
+        <a target="_blank" class="recommend-item" data-spm-click="gostr=/developer.publicity.space;locaid=d102020001;psid=group:query:1" href="https://developer.aliyun.com/special/mirror2021">镜像站体验官招募中，Airpods耳机等你来领！</a>
+        <a target="_blank" class="recommend-item" data-spm-click="gostr=/developer.publicity.space;locaid=d102020002;psid=group:query:303872355578411520" href="https://developer.aliyun.com/topic/wuying">”云上超级电脑、万元豪礼限时免费领取！</a>
+        <a target="_blank" class="recommend-item" data-spm-click="gostr=/developer.publicity.space;locaid=d102020003;psid=group:query:3" href="https://developer.aliyun.com/article/855928?utm_content=g_1000319298">免费下载《云原生时代下的App开发》</a>
+        <a target="_blank" class="recommend-item" data-spm-click="gostr=/developer.publicity.space;locaid=d102020004;psid=group:query:303872950330718721" href="https://developer.aliyun.com/topic/bloggers?utm_content=g_1000288847">乘风者计划邀您入驻社区，精彩权益即刻享</a>
+    </div>
+</div>
+            
+            
+            <div class="right-item-box ebook-box">
+    <div class="right-item-title">
+        <div class="right-item-title-text">相关电子书</div>
+        <a href="/ebook" target="_blank" class="right-item-title-link">更多</a>
+    </div>
+    <div class="right-module-ebook-container">
+        <div class="swiper-container swiper-ebook-container">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide active">
+                    <a target="_blank" href="https://developer.aliyun.com/topic/download?id=8269">
+                        <img src="https://ucc.alicdn.com/pic/developer-ecology/a55841009a784d84a42968d29f226281.png" />
+                    </a>
+                </div>
+                <div class="swiper-slide">
+                    <a target="_blank" href="https://developer.aliyun.com/topic/download?id=8268">
+                        <img src="https://ucc.alicdn.com/pic/developer-ecology/865cf02b0d3a41afaf992873c83f7264.jpg" />
+                    </a>
+                </div>
+                <div class="swiper-slide">
+                    <a target="_blank" href="https://developer.aliyun.com/topic/download?id=8272">
+                        <img src="https://ucc.alicdn.com/pic/developer-ecology/1460bbcf4a8746c7bac90d84ea4aa288.jpg" />
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="swiper-pagination swiper-ebook-pagination"></div>
+    </div>
+    <div class="ebook-info-list">
+        <div class="ebook-info-item active">
+            <div class="ebook-info-item-title">《2021云上架构与运维峰会演讲合集》</div>
+            <a class="ebook-info-item-btn" target="_blank" href="https://developer.aliyun.com/topic/download?id=8269">立即下载</a>
+        </div>
+        <div class="ebook-info-item">
+            <div class="ebook-info-item-title">《零基础CSS入门教程》</div>
+            <a class="ebook-info-item-btn" target="_blank" href="https://developer.aliyun.com/topic/download?id=8268">立即下载</a>
+        </div>
+        <div class="ebook-info-item">
+            <div class="ebook-info-item-title">《零基础HTML入门教程》</div>
+            <a class="ebook-info-item-btn" target="_blank" href="https://developer.aliyun.com/topic/download?id=8272">立即下载</a>
+        </div>
+    </div>
+</div>
+            <div class="right-item-nav" id="right-item-nav"></div>
+        </div>
+    </div>
+    
+</div>
+
+        <div data-role-footer="default"></div>
+        <script type="text/javascript" src="//g.alicdn.com/aliyun/static/0.0.11/??react.js,react-dom.js" nonce="f8af9234c93843119ef0e8d0026919ca"></script>
+        <script type="text/javascript" src="//alinw.alicdn.com/platform/c/jquery/1.11.3/dist/jquery.min.js" nonce="f8af9234c93843119ef0e8d0026919ca"></script>
+        <script defer="defer" src="//g.alicdn.com/aliyun/perf/js/index.js" nonce="f8af9234c93843119ef0e8d0026919ca"></script>
+        <script nonce="f8af9234c93843119ef0e8d0026919ca">
+            $(document).ready(function(){
+                window.ALIYUN_PERF.reportPerfWhenStatic();
+            });
+        </script>
+    
+
+<script src="/js/react.js" nonce="f8af9234c93843119ef0e8d0026919ca"></script>
+<script src="/js/react-dom.js" nonce="f8af9234c93843119ef0e8d0026919ca"></script>
+
+
+<script type="text/javascript" nonce="f8af9234c93843119ef0e8d0026919ca" src="//g.alicdn.com/aliyun/ucc-component-fe/0.2.5/??actionButtons.js,uccComment.js,commentsNum.js"></script>
+<script type="text/javascript" nonce="f8af9234c93843119ef0e8d0026919ca" src="//g.alicdn.com/aliyun/developer-aliyun-com-fe/2.3.0/scripts/??medalDialog.js,articleDetail.js,newDetailCommon.js,mathjax.js,weChatDisable.js,yuqueDocViewer.js"></script>
+
+
+<script nonce="f8af9234c93843119ef0e8d0026919ca">
+
+    let uc = new UccComment({
+        container: "#comment",
+        bizCategory: 'yq-comment-type-article',
+        objectId: GLOBAL_CONFIG.articleId,
+        subBizCategory: "yq-comment-reply-type-article",
+        actionBizCategory: "yq-vote-comment",
+        actionCode: "yq-vote-comment-like",
+        subActionBizCategory: "yq-vote-sub-comment",
+        subActionCode: "yq-vote-sub-comment-like",
+        sourceAppCode: "developer-ecology",
+        sourceBizCategory: "developer-ecology-group",
+        subLimit: 5
+    });
+    uc.render();
+</script>
+
+<script nonce="f8af9234c93843119ef0e8d0026919ca" src="https://ucc.aliyun.com/ucc/view/log?appCode=developer-ecology&amp;bizCategory=ucc-blog&amp;objectId=5&amp;nonce=f8af9234c93843119ef0e8d0026919ca"></script>
+
+
+
+<script type="text/javascript" src="/js/baidu_push.js" nonce="f8af9234c93843119ef0e8d0026919ca"></script>
+
+
+
+
+</body>
+
+
+</html>

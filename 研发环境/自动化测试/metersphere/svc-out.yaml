@@ -1,0 +1,18 @@
+---
+# Source: metersphere/templates/03-modules/mysql.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: metersphere-mysql-out
+  namespace: devops-test-ms
+  labels:
+    app: metersphere-mysql
+spec:
+  selector:
+    app: metersphere-mysql
+  ports:
+    - name: tcp
+      port: 3306
+      protocol: TCP
+      nodePort: 32597
+  type: LoadBalancer

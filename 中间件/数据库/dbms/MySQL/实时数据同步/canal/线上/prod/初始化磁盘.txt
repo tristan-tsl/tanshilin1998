@@ -1,0 +1,10 @@
+
+mkdir -p /k8slpv/prod/middleware/db/mysql-canal-admin-zookeeper/1 && chmod 777 /k8slpv/prod/middleware/db/mysql-canal-admin-zookeeper/1
+mkdir -p /k8slpv/prod/middleware/db/mysql-canal-admin-zookeeper/2 && chmod 777 /k8slpv/prod/middleware/db/mysql-canal-admin-zookeeper/2
+mkdir -p /k8slpv/prod/middleware/db/mysql-canal-admin-zookeeper/3 && chmod 777 /k8slpv/prod/middleware/db/mysql-canal-admin-zookeeper/3
+mkdir -p /k8slpv/prod/middleware/db/mysql-canal && chmod 777 /k8slpv/prod/middleware/db/mysql-canal
+mkdir -p /k8slpv/prod/middleware/db/mysql-canal-mysql && chmod 777 /k8slpv/prod/middleware/db/mysql-canal-mysql
+
+
+
+

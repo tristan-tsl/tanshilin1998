@@ -1,0 +1,16 @@
+---
+# 存储 for nacos-mysql
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nacos-mysql
+  namespace: dev
+spec:
+  storageClassName: local-storage
+  volumeName: dev-nacos-mysql
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi

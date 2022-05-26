@@ -1,0 +1,8 @@
+      - alert: kubernetes-rc-pod-状态-重启次数
+        expr: kube_pod_container_status_restarts_total{namespace=~"wjh-prod|wjh-pre"}>5
+        for: 1m
+        labels:
+          status: 非常严重
+        annotations:
+          summary: "异常"
+          description: "kubernetes-rc-pod-状态重启次数大于5次 ({{$labels.namespace}}/{{$labels.container}}/{{$labels.pod}} : {{$value}}次)"

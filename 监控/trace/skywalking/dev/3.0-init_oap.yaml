@@ -1,0 +1,24 @@
+---
+# 从镜像中读取配置文件写入到挂载目录中以完成首次初始化配置文件
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: init-monitor-trace-skywalking-oap
+  namespace: dev
+spec:
+  template:
+    spec:
+      containers:
+        - name: config
+          image: ctr-registry.local./ops/skywalking-oap-server:8.7.0-es7
+          imagePullPolicy: IfNotPresent
+          command: [ "cp", "-r", "/skywalking/config", "/mnt/config" ]
+          volumeMounts:
+            - mountPath: /mnt
+              name: oap
+      restartPolicy: Never
+      volumes:
+        - name: oap
+          persistentVolumeClaim:
+            claimName: monitor-trace-skywalking-oap
+  backoffLimit: 2

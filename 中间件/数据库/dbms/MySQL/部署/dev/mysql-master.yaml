@@ -1,0 +1,190 @@
+---
+# 配置文件
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-master
+  namespace: dev
+data:
+  mysql.cnf: |
+    [client]
+    port = 3306
+    [mysqld]
+    server-id=10
+    # source-replica
+    default-authentication-plugin=mysql_native_password
+    plugin-load="rpl_semi_sync_source=semisync_source.so"
+    rpl_semi_sync_source_enabled=1
+    loose_rpl_semi_sync_source_timeout = 5000
+    rpl_semi_sync_source_wait_point = AFTER_SYNC
+    rpl_semi_sync_source_wait_for_replica_count = 1
+
+    gtid_mode=ON
+    enforce_gtid_consistency=on
+    relay_log_recovery=ON
+    # binlog
+    log_bin = mysql-bin
+    binlog_format = ROW
+    binlog_row_image = full
+    binlog_expire_logs_seconds=604800
+    binlog_cache_size = 1M
+    sync_binlog=1
+    mysqlx_max_connections = 9000
+    port = 3306
+    datadir=/var/lib/mysql
+    skip_ssl
+    skip-name-resolve
+    back_log = 900
+    authentication_policy=mysql_native_password
+    # connection
+    max_connections = 9000
+    max_connect_errors = 18446744073709551615
+    # slowlog
+    log_output=TABLE
+    long_query_time=1
+    # log_queries_not_using_indexes=1
+    open_files_limit = 65535
+    table_open_cache = 128
+    max_allowed_packet = 100M
+    max_heap_table_size = 80M
+    tmp_table_size = 16M
+    read_buffer_size = 2M
+    read_rnd_buffer_size = 8M
+    sort_buffer_size = 8M
+    join_buffer_size = 8M
+    thread_cache_size = 128
+    #query_cache_size = 64M
+    #query_cache_limit = 2M
+    key_buffer_size = 4M
+    ft_min_word_len = 4
+    transaction_isolation = READ-COMMITTED
+    sql_mode=
+    lower_case_table_names=1
+    slow_query_log = 1
+    long_query_time = 1
+    performance_schema = 1
+    explicit_defaults_for_timestamp
+    wait_timeout=7200
+    interactive_timeout=7200
+    skip-external-locking
+    default-storage-engine = InnoDB
+    innodb_file_per_table = 1
+    innodb_open_files = 50000
+    innodb_buffer_pool_size=3G
+    innodb_buffer_pool_instances=16
+    innodb_write_io_threads = 4
+    innodb_read_io_threads = 4
+    innodb_thread_concurrency = 0
+    innodb_purge_threads = 1
+    innodb_flush_log_at_trx_commit = 2
+    innodb_log_buffer_size = 640M
+    innodb_log_file_size = 32M
+    innodb_log_files_in_group = 3
+    innodb_max_dirty_pages_pct = 90
+    innodb_lock_wait_timeout = 120
+    innodb_flush_log_at_trx_commit=1
+    innodb_use_native_aio=1
+    innodb_spin_wait_delay=180
+    innodb_sync_spin_loops=25
+    innodb_flush_method=O_DIRECT
+    innodb_io_capacity=20000
+    innodb_io_capacity_max=40000
+    innodb_lru_scan_depth=9000
+    innodb_page_cleaners=16
+    innodb_flush_neighbors=0
+    innodb_write_io_threads=16
+    innodb_read_io_threads=16
+    innodb_purge_threads=32
+    bulk_insert_buffer_size = 80M
+    myisam_sort_buffer_size = 8M
+    myisam_max_sort_file_size = 10G
+    myisam_repair_threads = 1
+    interactive_timeout = 28800
+    wait_timeout = 28800
+    [mysqldump]
+    quick
+    max_allowed_packet = 16M
+    [myisamchk]
+    key_buffer_size = 8M
+    sort_buffer_size = 8M
+    read_buffer = 4M
+    write_buffer = 40M
+
+---
+# 内部域名
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-master
+  namespace: dev
+spec:
+  selector:
+    app: mysql-master
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3306
+---
+# 服务
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-master
+  namespace: dev
+  labels:
+    app: mysql-master
+spec:
+  serviceName: mysql-master
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-master
+  template:
+    metadata:
+      labels:
+        app: mysql-master
+    spec:
+      containers:
+        - name: mysql-master
+          image: ctr-registry.local./ops/mysql:8.0.27
+          imagePullPolicy: IfNotPresent
+          args:
+            - --character-set-server=utf8mb4
+            - --collation-server=utf8mb4_unicode_ci
+          ports:
+            - containerPort: 3306
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+            - name: MYSQL_ROOT_PASSWORD
+              value: 
+            - name: restart
+              value: '8'
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: mysql-master
+            - mountPath: /etc/mysql/conf.d
+              name: conf-mysql
+          resources:
+            requests:
+              cpu: 100m
+              memory: 0.1Gi
+              ephemeral-storage: 10Gi
+            limits:
+              cpu: 9000m
+              memory: 12Gi
+              ephemeral-storage: 100Gi
+      volumes:
+        - name: conf-mysql
+          configMap:
+            name: mysql-master
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-master
+      spec:
+        storageClassName: rook-ceph-block
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 100Gi

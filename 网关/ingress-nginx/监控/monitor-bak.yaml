@@ -1,0 +1,47 @@
+#---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  labels:
+#    app.kubernetes.io/name: ingress-nginx-monitor
+#  name: ingress-nginx-monitor
+#  namespace: ingress-nginx
+#spec:
+#  ports:
+#    - name: http
+#      port: 80
+#      targetPort: 10254
+#  selector:
+#    app.kubernetes.io/name: ingress-nginx
+#    app.kubernetes.io/instance: ingress-nginx
+#    app.kubernetes.io/component: controller
+#---
+#apiVersion: monitoring.coreos.com/v1
+#kind: ServiceMonitor
+#metadata:
+#  labels:
+#    app.kubernetes.io/name: ingress-nginx-monitor
+#  name: ingress-nginx-monitor
+#  namespace: ingress-nginx
+#spec:
+#  endpoints:
+#    - interval: 5s
+#      port: http
+#  selector:
+#    matchLabels:
+#      app.kubernetes.io/name: ingress-nginx-monitor
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: ingress-nginx
+  namespace: ingress-nginx
+  labels:
+    app.kubernetes.io/name: ingress-nginx
+spec:
+    selector:
+      app.kubernetes.io/name: ingress-nginx
+      app.kubernetes.io/instance: ingress-nginx
+      app.kubernetes.io/component: controller
+  podMetricsEndpoints:
+    - port: metrics

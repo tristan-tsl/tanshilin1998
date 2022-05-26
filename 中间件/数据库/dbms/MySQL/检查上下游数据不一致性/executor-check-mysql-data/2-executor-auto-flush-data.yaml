@@ -1,0 +1,73 @@
+---
+# 服务
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: executor-check-mysql-data
+  namespace: wjh-prod
+  labels:
+    app: executor-check-mysql-data
+spec:
+  serviceName: executor-check-mysql-data
+  replicas: 1
+  selector:
+    matchLabels:
+      app: executor-check-mysql-data
+  template:
+    metadata:
+      labels:
+        app: executor-check-mysql-data
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: sidecar-openvpn-client
+          image: laashubsoa/sidecar-openvpn-client:0.0.1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - mountPath: /etc/openvpn/client
+              name: sidecar-openvpn-client
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: 5000m
+              memory: 5000Mi
+              ephemeral-storage: 10Gi
+        - name: executor-check-mysql-data
+          image: tanshilindocker/executor-check-mysql-data:0.0.3
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: 5000m
+              memory: 5000Mi
+              ephemeral-storage: 10Gi
+          volumeMounts:
+            - mountPath: /usr/src/app/configs
+              name: executor-check-mysql-data-conf
+            - mountPath: /usr/src/app/temp
+              name: executor-check-mysql-data-data
+      volumes:
+        - name: sidecar-openvpn-client
+          configMap:
+            name: sidecar-openvpn-client-executor-check-mysql-data
+        - name: executor-check-mysql-data-conf
+          configMap:
+            name: executor-check-mysql-data
+  volumeClaimTemplates:
+    - metadata:
+        name: executor-check-mysql-data-data
+      spec:
+        storageClassName: rook-ceph-block
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 100Gi

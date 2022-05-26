@@ -1,0 +1,103 @@
+#---
+## 配置文件
+#apiVersion: v1
+#kind: ConfigMap
+#metadata:
+#  name: mysql
+#  namespace: dev
+#data:
+#  mysql.cnf: |
+#    [mysql]
+#    [mysqld]
+#    log-bin=binlog
+#    server-id=1
+---
+# 内部域名
+apiVersion: v1
+kind: Service
+metadata:
+  name: xxljob-mysql
+  namespace: dev
+spec:
+  selector:
+    app: xxljob-mysql
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3306
+      nodePort: 30709
+  type: LoadBalancer
+---
+# 服务
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: xxljob-mysql
+  namespace: dev
+  labels:
+    app: xxljob-mysql
+spec:
+  serviceName: xxljob-mysql
+  replicas: 1
+  selector:
+    matchLabels:
+      app: xxljob-mysql
+  template:
+    metadata:
+      labels:
+        app: xxljob-mysql
+    spec:
+      containers:
+        - name: xxljob-mysql
+          image: ctr-registry.local./ops/mysql:8.0.26
+          imagePullPolicy: IfNotPresent
+          args:
+            - --character-set-server=utf8mb4
+            - --collation-server=utf8mb4_unicode_ci
+            - --max-connect-errors=18446744073709551615
+            - --default-authentication-plugin=mysql_native_password
+          ports:
+            - containerPort: 3306
+          #        livenessProbe:
+          #          tcpSocket:
+          #            port: 3306
+          #          failureThreshold: 10
+          #          periodSeconds: 60
+          #          initialDelaySeconds: 10
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+            - name: MYSQL_ROOT_PASSWORD
+              value: cqAbKnGQZ7tppe523Q5x
+            - name: MYSQL_DATABASE
+              value: xxl_job
+            - name: MYSQL_USER
+              value: xxl_job
+            - name: MYSQL_PASSWORD
+              value: wiHsA9HV0iZzY2moRzvb
+            - name: restart
+              value: "fsdfssssdfs"
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: xxljob-mysql
+          #          - mountPath: /etc/mysql/conf.d/mysql.cnf
+          #            name: mysql-config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 1Gi
+              ephemeral-storage: 10Gi
+            limits:
+              cpu: 2000m
+              memory: 5Gi
+              ephemeral-storage: 10Gi
+  volumeClaimTemplates:
+    - metadata:
+        name: xxljob-mysql
+      spec:
+        storageClassName: rook-ceph-block
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 100Gi

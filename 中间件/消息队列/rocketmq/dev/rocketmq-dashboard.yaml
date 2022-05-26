@@ -1,0 +1,89 @@
+---
+# 外部域名
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rocketmq-dashboard
+  namespace: dev
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/proxy-buffering: "on"
+    nginx.ingress.kubernetes.io/client-body-buffer-size: 100m
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "800k"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "400"
+spec:
+  rules:
+    - host: rocketmq-webui.dev.local.
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: rocketmq-dashboard
+                port:
+                  number: 80
+---
+# 内部域名
+apiVersion: v1
+kind: Service
+metadata:
+  name: rocketmq-dashboard
+  namespace: dev
+spec:
+  selector:
+    app: rocketmq-dashboard
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+---
+# 服务
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rocketmq-dashboard
+  namespace: dev
+  labels:
+    app: rocketmq-dashboard
+spec:
+  serviceName: rocketmq-dashboard
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rocketmq-dashboard
+  template:
+    metadata:
+      labels:
+        app: rocketmq-dashboard
+    spec:
+      containers:
+        - name: rocketmq-dashboard
+          image: ctr-registry.local./ops/rocketmq-dashboard:1.0.0
+#          image: apacherocketmq/rocketmq-console:2.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          #        livenessProbe:
+          #          tcpSocket:
+          #            port: 8080
+          #          failureThreshold: 10
+          #          periodSeconds: 60
+          #          initialDelaySeconds: 10
+          env:
+            - name: JAVA_OPTS
+              value: "-Drocketmq.namesrv.addr=rocketmq:80 -Dcom.rocketmq.sendMessageWithVIPChannel=false"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 0.1Gi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: 5000m
+              memory: 5Gi
+              ephemeral-storage: 10Gi
+      imagePullSecrets:
+        - name: regcred

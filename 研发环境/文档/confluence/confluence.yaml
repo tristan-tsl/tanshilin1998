@@ -1,0 +1,111 @@
+---
+# 外部网络
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: confluence
+  namespace: doc
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/proxy-buffering: "on"
+    nginx.ingress.kubernetes.io/client-body-buffer-size: 100m
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "800k"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "400"
+spec:
+  rules:
+    - host: confluence-doc.local.
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: confluence
+                port:
+                  number: 80
+---
+# 内部网络
+apiVersion: v1
+kind: Service
+metadata:
+  name: confluence
+  namespace: doc
+spec:
+  selector:
+    app: confluence
+  ports:
+    - name: for-80900
+      port: 80
+      targetPort: 8090
+    - name: for-8091
+      port: 8091
+      targetPort: 8091
+---
+# 服务
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: confluence
+  namespace: doc
+  labels:
+    app: confluence
+spec:
+  serviceName: confluence
+  replicas: 1
+  selector:
+    matchLabels:
+      app: confluence
+  template:
+    metadata:
+      labels:
+        app: confluence
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: confluence
+          image: atlassian/confluence-server:6.7.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8089
+            - containerPort: 8091
+#          command:
+#            - sh
+#            - -c
+#            - "sleep 9999"
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+#            - name: ATL_JDBC_URL
+#              value: "jdbc:mysql://confluence-mysql:80/confluence?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true"
+#            - name: ATL_JDBC_USER
+#              value: "confluence"
+#            - name: ATL_JDBC_PASSWORD
+#              value: "confluence"
+#            - name: ATL_DB_TYPE
+#              value: "mysql"
+          volumeMounts:
+            - mountPath: /var/atlassian/application-data/confluence
+              name: confluence
+            - mountPath: /opt/atlassian/confluence/confluence/WEB-INF/lib
+              name: confluence-patch
+#            - mountPath: /mnt
+#              name: confluence-patch
+          resources:
+            requests:
+              cpu: 100m
+              memory: 0.1Gi
+              ephemeral-storage: 10Gi
+            limits:
+              cpu: 50000m
+              memory: 50Gi
+              ephemeral-storage: 200Gi
+      volumes:
+        - name: confluence
+          persistentVolumeClaim:
+            claimName: confluence
+        - name: confluence-patch
+          persistentVolumeClaim:
+            claimName: confluence-patch

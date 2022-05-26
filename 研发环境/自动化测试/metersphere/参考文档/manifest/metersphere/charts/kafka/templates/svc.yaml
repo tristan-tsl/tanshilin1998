@@ -1,0 +1,25 @@
+---
+# Source: metersphere/charts/kafka/templates/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: metersphere-kafka
+  namespace: devops-test-ms
+  labels:
+    app.kubernetes.io/name: kafka
+    helm.sh/chart: kafka-11.3.1
+    app.kubernetes.io/instance: metersphere
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: kafka
+spec:
+  type: ClusterIP
+  ports:
+    - name: tcp-client
+      port: 9092
+      protocol: TCP
+      targetPort: kafka-client
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: kafka
+    app.kubernetes.io/instance: metersphere
+    app.kubernetes.io/component: kafka
