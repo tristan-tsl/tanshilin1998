@@ -1,0 +1,147 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: clickhouse-all-0-r
+  labels:
+    clickhouse/service: "all"
+    clickhouse/share: "0"
+    clickhouse/mode: "read"
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8123
+      targetPort: http
+    - name: tcp
+      port: 9000
+      targetPort: tcp
+    - name: interserver
+      port: 9009
+      targetPort: interserver
+    - name: metrics
+      port: 9363
+      targetPort: metrics
+  selector:
+    clickhouse/service: "all"
+    clickhouse/share: "0"
+    clickhouse/mode: "read"
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    clickhouse/service: "all"
+    clickhouse/share: "0"
+    clickhouse/mode: "read"
+  name: clickhouse-all-0-r
+spec:
+  serviceName: clickhouse-all-0-r
+  replicas: 1
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      clickhouse/service: "all"
+      clickhouse/share: "0"
+      clickhouse/mode: "read"
+  template:
+    metadata:
+      labels:
+        clickhouse/service: "all"
+        clickhouse/share: "0"
+        clickhouse/mode: "read"
+    spec:
+      nodeSelector:
+        "clickhouse-server": "true"
+      containers:
+      - image: clickhouse/clickhouse-server:22.3.2.2
+        env:
+          - name: TZ
+            value: Asia/Shanghai
+          - name: CLICKHOUSE_CONFIG
+            value: /etc/clickhouse-server/config.yaml
+        imagePullPolicy: IfNotPresent
+        name: clickhouse
+        ports:
+        - containerPort: 8123
+          name: http
+          protocol: TCP
+        - containerPort: 9000
+          name: tcp
+          protocol: TCP
+        - containerPort: 9009
+          name: interserver
+          protocol: TCP
+        - containerPort: 9363
+          name: metrics
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /ping
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          requests:
+            cpu: "30"
+            memory: 115Gi
+#            ephemeral-storage: 1Gi
+          limits:
+            cpu: "30"
+            memory: 115Gi
+#            ephemeral-storage: 10Gi
+        lifecycle:
+          preStop:
+            exec:
+              command:
+                - sh
+                - -c
+                - sleep 10 && clickhouse-client --host="127.0.0.1" --port="9000" --query "SYSTEM SHUTDOWN;"
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/lib/clickhouse
+          name: data-0
+        - mountPath: /etc/clickhouse-server/
+          name: config
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30 # 临时调试时使用30s下线
+      volumes:
+        - name: config
+          configMap:
+            name: clickhouse-0-r
+  volumeClaimTemplates:
+    - metadata:
+        name: data-0
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: cbs-mw
+        resources:
+          requests:
+            storage: "2048Gi"
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: clickhouse-0-r
+  labels:
+    clickhouse/service: "all"
+    clickhouse/share: "0"
+    clickhouse/mode: "read"
+spec:
+  selector:
+    matchLabels:
+      clickhouse/service: "all"
+      clickhouse/share: "0"
+      clickhouse/mode: "read"
+  podMetricsEndpoints:
+    - port: metrics
+      interval: 15s

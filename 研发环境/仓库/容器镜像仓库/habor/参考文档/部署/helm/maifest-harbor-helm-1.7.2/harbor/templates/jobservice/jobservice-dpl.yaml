@@ -1,0 +1,94 @@
+---
+# Source: harbor/templates/jobservice/jobservice-dpl.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: "habor-harbor-jobservice"
+  labels:
+    heritage: Helm
+    release: habor
+    chart: harbor
+    app: "harbor"
+    component: jobservice
+  namespace: registry-ctr-habor
+spec:
+  serviceName: habor-harbor-jobservice
+  replicas: 1
+  selector:
+    matchLabels:
+      release: habor
+      app: "harbor"
+      component: jobservice
+  template:
+    metadata:
+      labels:
+        heritage: Helm
+        release: habor
+        chart: harbor
+        app: "harbor"
+        component: jobservice
+      annotations:
+        checksum/configmap: ec0ed6d42ef8f83b55b3c15facf3d1d5b1a2b0167ce7427e67cc891ee947ed6a
+        checksum/configmap-env: 3125e79619d612a3d5ab7732632ee4604f52072201f5529cb870647ec38a2459
+        checksum/secret: 04da7e935be0e5e807f3b82d98b1ca0643ccf2716cca2867394ba378e53fd850
+        checksum/secret-core: 4c66e9ccac6ca2da9073bea02b3d272304e4d96c28c7c5d6389e08a3318b5b05
+    spec:
+      securityContext:
+        runAsUser: 10000
+        fsGroup: 10000
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 120
+      containers:
+      - name: jobservice
+        image: goharbor/harbor-jobservice:v2.3.2
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /api/v1/stats
+            scheme: HTTP
+            port: 8080
+          initialDelaySeconds: 300
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/v1/stats
+            scheme: HTTP
+            port: 8080
+          initialDelaySeconds: 20
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 1000m
+            ephemeral-storage: 10Gi
+            memory: 2560Mi
+          requests:
+            cpu: 100m
+            ephemeral-storage: 1Gi
+            memory: 256Mi
+        env:
+          - name: CORE_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: habor-harbor-core
+                key: secret
+        envFrom:
+        - configMapRef:
+            name: "habor-harbor-jobservice-env"
+        - secretRef:
+            name: "habor-harbor-jobservice"
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: jobservice-config
+          mountPath: /etc/jobservice/config.yml
+          subPath: config.yml
+        - name: job-logs
+          mountPath: /var/log/jobs
+          subPath: 
+      volumes:
+      - name: jobservice-config
+        configMap:
+          name: "habor-harbor-jobservice"
+      - name: job-logs
+        persistentVolumeClaim:
+          claimName: jobservice

@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: metershpere-zookeeper
+  namespace: devops-test-ms
+spec:
+  storageClassName: local-storage
+  volumeName: devops-test-ms-metersphere-zookeeper
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi

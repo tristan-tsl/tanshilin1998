@@ -1,0 +1,16 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    clickhouse.altinity.com/chop: 0.18.2
+    app: clickhouse-operator
+  name: clickhouse-operator-metrics
+  namespace: kube-system
+spec:
+  endpoints:
+  - interval: 15s
+    port: clickhouse-operator-metrics
+  selector:
+    matchLabels:
+      app: clickhouse-operator

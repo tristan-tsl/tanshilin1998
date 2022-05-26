@@ -1,0 +1,41 @@
+---
+# 内部域名
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper-1
+  namespace: dev
+spec:
+  selector:
+    app: zookeeper-1
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 2181
+      nodePort: 31937
+  type: LoadBalancer
+---
+# 内部域名
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper-hs-1
+  namespace: dev
+  labels:
+    app.kubernetes.io/name: zookeeper-1
+spec:
+  selector:
+    app: zookeeper-1
+  ports:
+    - name: for-2888
+      port: 2888
+      targetPort: 2888
+    - name: for-3888
+      port: 3888
+      targetPort: 3888
+    - name: for-2181
+      port: 2181
+      targetPort: 2181
+    - name: for-7070
+      port: 7070
+      targetPort: 7070

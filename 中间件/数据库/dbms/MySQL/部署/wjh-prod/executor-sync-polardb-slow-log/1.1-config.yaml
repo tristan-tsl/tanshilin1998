@@ -1,0 +1,65 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: executor-sync-polardb-slow-log
+  namespace: wjh-prod
+data:
+  application.yaml: |
+    # #############################告警配置
+    access_key_id: 
+    access_secret: 
+    region: cn-shenzhen
+    db_cluster_id: 
+    # 需要排除的SQL 关键字
+    exclude_key_word:
+      sql:
+        contains:
+          - binlog dump
+          - dms-data_correct
+          - /*dbs_urv7bfsmb4mx*/%
+          - select @@session.transaction_read_only
+        start_with:
+          - prepare
+          - sleep(
+          - rollback
+          - commit
+      host_address:
+        - online_wjhmadb_r
+        - dms[dms]
+        - executor_auto_flush_data[executor_auto_flush_data]
+
+
+    # 数据库配置
+    mysql:
+      host: executor-sync-polardb-slow-log-mysql
+      port: 80
+      database: executor_sync_polardb_slow_log
+      user: executor_sync_polardb_slow_log
+      password: AtnYyDFkWnm2XgMRUFic
+      charset: utf8mb4
+    # 触发时间点
+    trigger:
+      hours:
+        - 9
+        - 14
+        - 23
+    # 归属人名称
+    owner_2_name:
+      tanshilin: 谭
+    # 归属人手机号码
+    owner_2_phone:
+      tanshilin: 1
+    # 钉钉webhook配置
+    dingding_webhook_access_token:
+      - 
+    # 慢SQL-最大容忍次数
+    serious_sql:
+      maximum_tolerance_count: 10
+    # grafana
+    grafana:
+      base_url: http://grafana.local./d/MN5YE2-Mk/man-sql?orgId=1&from=now-2d&to=now&var-db_name={db_name}&var-sql_template_id={sql_template_id}
+    # 数据库归属人
+    owner_2_db:
+      j:
+        - l

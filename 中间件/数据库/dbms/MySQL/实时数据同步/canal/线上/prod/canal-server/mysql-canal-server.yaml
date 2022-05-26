@@ -1,0 +1,111 @@
+---
+# 服务
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-canal-server
+  namespace: wjh-prod
+  labels:
+    app: mysql-canal-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-canal-server
+  template:
+    metadata:
+      labels:
+        app: mysql-canal-server
+    spec:
+      nodeSelector:
+        "kubernetes.io/hostname": "cn-shenzhen.192.168.2.35"
+      restartPolicy: Always
+      containers:
+        - name: mysql-canal-server
+          image: ctr-registry.local./ops/canal-server:v1.1.5
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 2222
+            - containerPort: 11110
+            - containerPort: 11111
+            - containerPort: 8000
+            - containerPort: 11112
+          #              调试专用command块
+          command:
+            - sh
+            - -c
+##            - "/home/admin/app.sh"
+            - "sleep 9999"
+          #        livenessProbe:
+          #          tcpSocket:
+          #            port: 8089
+          #          failureThreshold: 10
+          #          periodSeconds: 60
+          #          initialDelaySeconds: 10
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+            - name: canal.admin.manager
+              value: mysql-canal:80
+            - name: canal.admin.port
+              value: "11110"
+            - name: canal.admin.user
+              value: admin
+            - name: canal.admin.passwd
+              value: 4acfe3202a5ff5cf467898fc58aab1d615029441
+#              集群暂时还有点问题, 暂时不用集群
+            - name: canal.admin.register.cluster
+              value: prod
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: 9000m
+              memory: 5000Mi
+              ephemeral-storage: 10Gi
+          volumeMounts:
+            - mountPath: /home/admin/canal-server/logs
+              name: logs-dir
+        - name: promtail
+          image: ctr-registry.local./ops/promtail:2.2.1
+          imagePullPolicy: IfNotPresent
+          args:
+            - -config.file=/etc/promtail/config.yaml
+            - -config.expand-env=true
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+            - name: ENVIRONMENT_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: REPLICASET_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - mountPath: /mnt
+              name: logs-dir
+            - mountPath: /etc/promtail
+              name: promtail-config
+          resources:
+            requests:
+              cpu: 50m
+              memory: 0.05Gi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: 500m
+              memory: 0.5Gi
+              ephemeral-storage: 10Gi
+      volumes:
+        - name: promtail-config
+          configMap:
+            name: loki-promtail-middleware
+        - name: logs-dir
+          emptyDir: {}

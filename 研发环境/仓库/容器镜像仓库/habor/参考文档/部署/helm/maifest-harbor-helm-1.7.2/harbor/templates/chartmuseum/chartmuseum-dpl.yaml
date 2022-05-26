@@ -1,0 +1,89 @@
+---
+# Source: harbor/templates/chartmuseum/chartmuseum-dpl.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: "habor-harbor-chartmuseum"
+  labels:
+    heritage: Helm
+    release: habor
+    chart: harbor
+    app: "harbor"
+    component: chartmuseum
+  namespace: registry-ctr-habor
+spec:
+  serviceName: habor-harbor-chartmuseum
+  replicas: 1
+  selector:
+    matchLabels:
+      release: habor
+      app: "harbor"
+      component: chartmuseum
+  template:
+    metadata:
+      labels:
+        heritage: Helm
+        release: habor
+        chart: harbor
+        app: "harbor"
+        component: chartmuseum
+      annotations:
+        checksum/configmap: a0cc1b8eda80c0275353f72b6b72471a89505eb9dd5b71543728e9c3c787eb8f
+        checksum/secret: ee00cb102688f11b19256a423b8fe1eee828e29d366cd7e388c25e68aed0c1e7
+        checksum/secret-core: cefa6f2188f580233fa3f46004c4fc359ca2ff131452aef10e37c9a698531b27
+    spec:
+      securityContext:
+        runAsUser: 10000
+        fsGroup: 10000
+      automountServiceAccountToken: false
+      containers:
+        - name: chartmuseum
+          image: goharbor/chartmuseum-photon:v2.3.2
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            httpGet:
+              path: /health
+              scheme: HTTP
+              port: 9999
+            initialDelaySeconds: 300
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              scheme: HTTP
+              port: 9999
+            initialDelaySeconds: 1
+            periodSeconds: 10
+          resources:
+            limits:
+              cpu: 1000m
+              ephemeral-storage: 10Gi
+              memory: 2560Mi
+            requests:
+              cpu: 100m
+              ephemeral-storage: 1Gi
+              memory: 256Mi
+          envFrom:
+            - configMapRef:
+                name: "habor-harbor-chartmuseum"
+            - secretRef:
+                name: "habor-harbor-chartmuseum"
+          env:
+            - name: BASIC_AUTH_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: habor-harbor-core
+                  key: secret
+            - # Needed to make AWS' client connect correctly (see https://github.com/helm/chartmuseum/issues/280)
+              name: AWS_SDK_LOAD_CONFIG
+              value: "1"
+          ports:
+            - containerPort: 9999
+          volumeMounts:
+            - name: chartmuseum-data
+              mountPath: /chart_storage
+              subPath:
+      volumes:
+        - name: chartmuseum-data
+          persistentVolumeClaim:
+            claimName: chartmuseum

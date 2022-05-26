@@ -1,0 +1,74 @@
+---
+# 服务
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rocketmq-exporter
+  namespace: dev
+  labels:
+    app.kubernetes.io/name: rocketmq-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rocketmq-exporter
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: rocketmq-exporter
+    spec:
+      containers:
+      - name: rocketmq-exporter
+        image: ctr-registry.local./ops/rocketmq-exporter:0.0.1
+        ports:
+        - containerPort: 5557
+          name: http
+        env:
+          - name: TZ
+            value: Asia/Shanghai
+          - name: "rocketmq.config.namesrvAddr"
+            value: "rocketmq:80"
+          - name: "rocketmq.config.rocketmqVersion"
+            value: "V4_9_1"
+        resources:
+          requests:
+            cpu: 25m
+            memory: 64Mi
+            ephemeral-storage: 0.1Gi
+          limits:
+            cpu: 5000m
+            memory: 10000Mi
+            ephemeral-storage: 1Gi
+      imagePullSecrets:
+        - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: rocketmq-exporter
+  name: rocketmq-exporter
+  namespace: dev
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+  selector:
+    app.kubernetes.io/name: rocketmq-exporter
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/name: rocketmq-exporter
+  name: rocketmq-exporter
+  namespace: dev
+spec:
+  endpoints:
+  - interval: 15s
+    port: http
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rocketmq-exporter
+

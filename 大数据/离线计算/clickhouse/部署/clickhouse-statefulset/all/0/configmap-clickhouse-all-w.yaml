@@ -1,0 +1,204 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: clickhouse-0-w
+  labels:
+    clickhouse/service: "all"
+    clickhouse/share: "0"
+    clickhouse/mode: "write"
+data:
+  config.yaml: |
+    logger:
+      level: trace
+      log: /var/log/clickhouse-server/clickhouse-server.log
+      errorlog: /var/log/clickhouse-server/clickhouse-server.err.log
+      size: 1000M
+      count: 10
+      console: 1
+    http_port: 8123
+    tcp_port: 9000
+    interserver_http_port: 9009
+    listen_host: 0.0.0.0
+    listen_backlog: 4096
+    max_connections: 4096
+    keep_alive_timeout: 1800
+    max_concurrent_queries: 0
+    max_server_memory_usage: 0
+    max_thread_pool_size: 10000
+    max_server_memory_usage_to_ram_ratio: 0.9
+    total_memory_profiler_step: 4194304
+    total_memory_tracker_sample_probability: 0
+    uncompressed_cache_size: 1073741824
+    mark_cache_size: 1073741824
+    mmap_cache_size: 1000
+    compiled_expression_cache_size: 134217728
+    compiled_expression_cache_elements_size: 10000
+    max_session_timeout: 3600
+    default_session_timeout: 3600
+    disable_internal_dns_cache: 1
+    merge_tree:
+      max_suspicious_broken_parts: 100
+      parts_to_throw_insert: 3000
+      parts_to_delay_insert: 1500
+      max_delay_to_insert: 1
+      max_parts_in_total: 999999
+      old_parts_lifetime: 180
+      number_of_free_entries_in_pool_to_execute_mutation: 16
+      use_minimalistic_part_header_in_zookeeper: 1
+      in_memory_parts_enable_wal: true
+      min_rows_for_compact_part: 100000
+      min_bytes_for_compact_part: 104857600
+    remote_servers:
+      replcluster:
+        - shard:
+            - replica:
+                host: clickhouse-all-0-w
+                port: 9000
+            - replica:
+                host: clickhouse-all-0-r
+                port: 9000
+    zookeeper:
+      - node:
+          host: clickhouse-keeper-0
+          port: 9181
+      - node:
+          host: clickhouse-keeper-1
+          port: 9181
+      - node:
+          host: clickhouse-keeper-2
+          port: 9181
+    macros:
+      shard: 0
+      replica: 0
+    builtin_dictionaries_reload_interval: 60
+    path: /var/lib/clickhouse/
+    tmp_path: /var/lib/clickhouse/tmp/
+    user_files_path: /var/lib/clickhouse/user_files/
+    user_directories:
+      users_xml:
+        path: users.yaml
+      local_directory:
+        path: /var/lib/clickhouse/access/
+    default_profile: default
+    default_database: default
+    mlock_executable: true
+    remap_executable: false
+    prometheus:
+      endpoint: /metrics
+      port: 9363
+      metrics: true
+      events: true
+      asynchronous_metrics: true
+      status_info: true
+    query_log:
+      database: system
+      table: query_log
+      flush_interval_milliseconds: 60000
+      partition_by: toMonday(event_date)
+      ttl: 'event_date + INTERVAL 7 DAY DELETE'
+    trace_log:
+      database: system
+      table: trace_log
+      flush_interval_milliseconds: 60000
+      partition_by: toMonday(event_date)
+      ttl: 'event_date + INTERVAL 7 DAY DELETE'
+    query_thread_log:
+      database: system
+      table: query_thread_log
+      flush_interval_milliseconds: 60000
+      partition_by: toMonday(event_date)
+      ttl: 'event_date + INTERVAL 7 DAY DELETE'
+    query_views_log:
+      database: system
+      table: query_views_log
+      flush_interval_milliseconds: 60000
+      partition_by: toMonday(event_date)
+      ttl: 'event_date + INTERVAL 7 DAY DELETE'
+    part_log:
+      database: system
+      table: part_log
+      flush_interval_milliseconds: 60000
+      partition_by: toMonday(event_date)
+      ttl: 'event_date + INTERVAL 7 DAY DELETE'
+    text_log:
+      database: system
+      table: text_log
+      level: ''
+      flush_interval_milliseconds: 60000
+      partition_by: toMonday(event_date)
+      ttl: 'event_date + INTERVAL 7 DAY DELETE'
+    metric_log:
+      database: system
+      table: metric_log
+      collect_interval_milliseconds: 5000
+      flush_interval_milliseconds: 60000
+      partition_by: toMonday(event_date)
+      ttl: 'event_date + INTERVAL 7 DAY DELETE'
+    asynchronous_metric_log:
+      database: system
+      table: asynchronous_metric_log
+      flush_interval_milliseconds: 60000
+      partition_by: toMonday(event_date)
+      ttl: 'event_date + INTERVAL 7 DAY DELETE'
+    opentelemetry_span_log:
+      #    engine: |-
+      #        engine MergeTree
+      #             partition by toMonday(finish_date)
+      #             order by (finish_date, finish_time_us, trace_id)
+      database: system
+      table: opentelemetry_span_log
+      flush_interval_milliseconds: 60000
+      partition_by: toMonday(event_date)
+      ttl: 'event_date + INTERVAL 7 DAY DELETE'
+    crash_log:
+      database: system
+      table: crash_log
+      flush_interval_milliseconds: 1000
+      partition_by: toMonday(event_date)
+      ttl: 'event_date + INTERVAL 7 DAY DELETE'
+    distributed_ddl:
+      path: /clickhouse/task_queue/ddl
+      # pool_size: 1
+      # task_max_lifetime: 604800
+      # cleanup_delay_period: 60
+      # max_tasks_in_queue: 1000
+    format_schema_path: /var/lib/clickhouse/format_schemas/
+  users.yaml: |
+    profiles:
+      default:
+        max_memory_usage: 0
+        load_balancing: random
+        allow_experimental_map_type: 1
+        allow_experimental_window_functions: 1
+        background_fetches_pool_size: 8
+        background_pool_size: 16
+        background_schedule_pool_size: 64
+        default_database_engine: Atomic
+        distributed_ddl_task_timeout: 300
+        distributed_directory_monitor_batch_inserts: 1
+        insert_quorum: 0
+        insert_quorum_parallel: 1
+        mutations_sync: 1
+        select_sequential_consistency: 0
+        max_threads: 60
+        optimize_throw_if_noop: 1
+    users:
+      default:
+        password: ''
+        networks:
+          - ip: '::/0'
+          - ip: '0.0.0.0/0'
+          - ip: '127.0.0.1'
+        profile: default
+        quota: default
+        access_management: 1
+    quotas:
+      default:
+        interval:
+          duration: 3600
+          queries: 0
+          errors: 0
+          result_rows: 0
+          read_rows: 0
+          execution_time: 0

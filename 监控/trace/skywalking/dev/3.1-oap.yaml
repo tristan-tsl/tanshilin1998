@@ -1,0 +1,82 @@
+---
+# 内部域名 外部使用: monitor-trace-skywalking-oap:11800
+apiVersion: v1
+kind: Service
+metadata:
+  name: monitor-trace-skywalking-oap
+  namespace: dev
+spec:
+  selector:
+    app: monitor-trace-skywalking-oap
+  ports:
+    - name: for-11800
+      port: 11800
+      targetPort: 11800
+    - name: for-12800
+      port: 12800
+      targetPort: 12800
+---
+# 服务
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: monitor-trace-skywalking-oap
+  namespace: dev
+  labels:
+    app: monitor-trace-skywalking-oap
+spec:
+  serviceName: monitor-trace-skywalking-oap
+  replicas: 1
+  selector:
+    matchLabels:
+      app: monitor-trace-skywalking-oap
+  template:
+    metadata:
+      labels:
+        app: monitor-trace-skywalking-oap
+    spec:
+      containers:
+        - name: oap
+          image: ctr-registry.local./ops/skywalking-oap-server:8.7.0-es7
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 11800
+            - containerPort: 12800
+          #        livenessProbe:
+          #          tcpSocket:
+          #            port: 11800
+          #          failureThreshold: 10
+          #          periodSeconds: 60
+          #          initialDelaySeconds: 10
+          env:
+            - name: SW_STORAGE
+              value: elasticsearch7
+            - name: SW_STORAGE_ES_CLUSTER_NODES
+              value: monitor-trace-skywalking-elasticsearch:80
+            - name: JAVA_OPTS
+              value: "-Xms256M -Dlog4j2.formatMsgNoLookups=true"
+            - name: FORMAT_MESSAGES_PATTERN_DISABLE_LOOKUPS
+              value: "true"
+          volumeMounts:
+            - mountPath: /etc/localtime
+              name: local-datetime
+            - mountPath: /skywalking/config
+              name: oap
+              subPath: config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 0.3Gi
+              ephemeral-storage: 10Gi
+            limits:
+              cpu: 3000m
+              memory: 3Gi
+              ephemeral-storage: 300Gi
+      volumes:
+        - name: local-datetime
+          hostPath:
+            path: /usr/share/zoneinfo/Asia/Shanghai
+        - name: oap
+          persistentVolumeClaim:
+            claimName: monitor-trace-skywalking-oap
+

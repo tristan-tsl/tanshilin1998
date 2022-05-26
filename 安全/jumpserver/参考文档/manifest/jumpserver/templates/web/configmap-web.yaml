@@ -1,0 +1,116 @@
+---
+# Source: jumpserver/templates/web/configmap-web.yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: jumpserver-jms-web
+  labels:
+    app.kubernetes.io/name: jumpserver
+    helm.sh/chart: jumpserver-0.1.0
+    app.kubernetes.io/instance: jumpserver
+    app.kubernetes.io/version: "v2.15.4"
+    app.kubernetes.io/managed-by: Helm
+    app.jumpserver.org/name: jms-web
+data:
+  default.conf: |
+    
+    
+    
+    
+    
+    
+    server {
+        listen 80;
+        server_name  _;
+        server_tokens off;
+  
+        client_max_body_size 4096m;  # 录像及文件上传大小限制
+  
+        location /ui/ {
+            try_files $uri / /index.html;
+            alias /opt/lina/;
+        }
+        location /luna/ {
+            try_files $uri / /index.html;
+            alias /opt/luna/;
+        }
+        location /media/ {
+            add_header Content-Encoding gzip;
+            root /opt/jumpserver/data/;
+        }
+        location /static/ {
+            root /opt/jumpserver/data/;
+        }
+        location /koko/ {
+            proxy_pass http://jumpserver-jms-koko:5000;
+            proxy_buffering off;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+        location /lion/ {
+            proxy_pass http://jumpserver-jms-lion:8081;
+            proxy_buffering off;
+            proxy_http_version 1.1;
+            proxy_request_buffering off;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $http_connection;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+        location /omnidb/ws {
+            resolver 127.0.0.11 valid=30s;
+            set $upstream http://jumpserver-jms-omnidb:8071;
+            proxy_pass $upstream$request_uri;
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+        location /omnidb/ {
+            resolver 127.0.0.11 valid=30s;
+            set $upstream http://jumpserver-jms-omnidb:8082;
+            proxy_pass $upstream$request_uri;
+            proxy_buffering off;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $http_connection;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+        location /ws/ {
+            proxy_pass http://jumpserver-jms-core:8070;
+            proxy_buffering off;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+        location /api/ {
+            proxy_pass http://jumpserver-jms-core:8080;
+            proxy_buffering off;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+        location /core/ {
+            proxy_pass http://jumpserver-jms-core:8080;
+            proxy_buffering off;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+        location / {
+            rewrite ^/(.*)$ /ui/$1 last;
+        }
+    }

@@ -1,0 +1,91 @@
+---
+# Source: jumpserver/templates/celery/deployment-celery.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jumpserver-jms-celery
+  labels:
+    app.jumpserver.org/name: jms-celery
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: jumpserver
+      app.kubernetes.io/instance: jumpserver
+      app.jumpserver.org/name: jms-core
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: jumpserver
+        app.kubernetes.io/instance: jumpserver
+        app.jumpserver.org/name: jms-core
+    spec:
+      serviceAccountName: default
+      securityContext:
+        {}
+      containers:
+        - name: jms-celery
+          securityContext:
+            {}
+          image: "docker.io/jumpserver/core:v2.14.2"
+          imagePullPolicy: IfNotPresent
+          args: ["start", "task"]
+          env:
+            - name: SECRET_KEY
+              value: ""
+            - name: BOOTSTRAP_TOKEN
+              value: ""
+            - name: DEBUG
+              value: "false"
+            - name: LOG_LEVEL
+              value: "ERROR"
+            - name: SESSION_EXPIRE_AT_BROWSER_CLOSE
+              value: "true"
+            - name: HTTP_LISTEN_PORT
+              value: "8080"
+            - name: WS_LISTEN_PORT
+              value: "8070"
+            - name: DB_ENGINE
+              value: "mysql"
+            - name: DB_HOST
+              value: "localhost"
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_USER
+              value: "root"
+            - name: DB_PASSWORD
+              value: ""
+            - name: DB_NAME
+              value: "jumpserver"
+            - name: REDIS_HOST
+              value: "localhost"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_PASSWORD
+              value: ""
+          livenessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - /opt/jumpserver/utils/check_celery.sh
+          resources:
+            null
+          volumeMounts:
+            - mountPath: "/opt/jumpserver/config.yml"
+              name: "jms-core-config"
+              subPath: "config.yml"
+            - mountPath: "/opt/jumpserver/data"
+              name: "jms-core-data"
+            - mountPath: "/opt/jumpserver/logs"
+              name: "jms-core-logs"
+      restartPolicy: Always
+      volumes:
+        - configMap:
+            name: 'jumpserver-jms-core'
+          name: "jms-core-config"
+        - persistentVolumeClaim:
+            claimName: 'jumpserver-jms-core-data'
+          name: "jms-core-data"
+        - persistentVolumeClaim:
+            claimName: 'jumpserver-jms-core-logs'
+          name: "jms-core-logs"

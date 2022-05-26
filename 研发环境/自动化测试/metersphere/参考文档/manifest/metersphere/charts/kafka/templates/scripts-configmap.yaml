@@ -1,0 +1,20 @@
+---
+# Source: metersphere/charts/kafka/templates/scripts-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: metersphere-kafka-scripts
+  namespace: devops-test-ms
+  labels:
+    app.kubernetes.io/name: kafka
+    helm.sh/chart: kafka-11.3.1
+    app.kubernetes.io/instance: metersphere
+    app.kubernetes.io/managed-by: Helm
+data:
+  setup.sh: |-
+    #!/bin/bash
+
+    ID="${MY_POD_NAME#"metersphere-kafka-"}"
+    export KAFKA_CFG_BROKER_ID="$ID"
+
+    exec /entrypoint.sh /run.sh

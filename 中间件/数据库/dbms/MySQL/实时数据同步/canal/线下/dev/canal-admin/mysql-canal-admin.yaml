@@ -1,0 +1,188 @@
+---
+# 内部域名
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-canal
+  namespace: dev
+spec:
+  selector:
+    app: mysql-canal
+  ports:
+    - name: for-8089
+      port: 80
+      targetPort: 8089
+    - name: for-3306
+      port: 3306
+      targetPort: 3306
+#      nodePort: 30426
+#  type: LoadBalancer
+---
+# 外部域名
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mysql-canal
+  namespace: dev
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+spec:
+  rules:
+    - host: mysql-canal.dev.local.
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: mysql-canal
+                port:
+                  number: 80
+---
+# 服务
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-canal
+  namespace: dev
+  labels:
+    app: mysql-canal
+spec:
+  serviceName: mysql-canal
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-canal
+  template:
+    metadata:
+      labels:
+        app: mysql-canal
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: mysql
+          image: ctr-registry.local./ops/mysql:8.0.26
+          imagePullPolicy: IfNotPresent
+          args:
+            - --character-set-server=utf8mb4
+            - --collation-server=utf8mb4_unicode_ci
+          ports:
+            - containerPort: 3306
+              #        livenessProbe:
+              #          tcpSocket:
+              #            port: 3306
+              #          failureThreshold: 10
+              #          periodSeconds: 60
+              #          initialDelaySeconds: 10
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+            - name: MYSQL_ROOT_PASSWORD
+              value: UWWDEEH8BZ1gUAX
+            - name: MYSQL_DATABASE
+              value: canal_manager
+            - name: MYSQL_USER
+              value: canal
+            - name: MYSQL_PASSWORD
+              value: canal
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: mysql-canal-mysql
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: 5000m
+              memory: 5000Mi
+              ephemeral-storage: 10Gi
+        - name: mysql-canal
+          image: ctr-registry.local./ops/canal-admin:v1.1.5
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8089
+          #        livenessProbe:
+          #          tcpSocket:
+          #            port: 8089
+          #          failureThreshold: 10
+          #          periodSeconds: 60
+          #          initialDelaySeconds: 10
+#          command:
+#            - sh
+#            - -c
+#            - "sleep 99999"
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+            - name: spring.datasource.address
+              value: 127.0.0.1
+            - name: spring.datasource.database
+              value: canal_manager
+            - name: spring.datasource.username
+              value: canal
+            - name: spring.datasource.password
+              value: canal
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: 5000m
+              memory: 5000Mi
+              ephemeral-storage: 10Gi
+          volumeMounts:
+            - mountPath: /home/admin/canal-admin
+              name: mysql-canal
+            - mountPath: /home/admin/canal-admin/logs
+              name: logs-dir
+        - name: promtail
+          image: ctr-registry.local./ops/promtail:2.2.1
+          imagePullPolicy: IfNotPresent
+          args:
+            - -config.file=/etc/promtail/config.yaml
+            - -config.expand-env=true
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+            - name: ENVIRONMENT_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: REPLICASET_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - mountPath: /mnt
+              name: logs-dir
+            - mountPath: /etc/promtail
+              name: promtail-config
+          resources:
+            requests:
+              cpu: 50m
+              memory: 0.05Gi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: 500m
+              memory: 0.5Gi
+              ephemeral-storage: 10Gi
+      volumes:
+        - name: mysql-canal
+          persistentVolumeClaim:
+            claimName: mysql-canal
+        - name: mysql-canal-mysql
+          persistentVolumeClaim:
+            claimName: mysql-canal-mysql
+        - name: logs-dir
+          emptyDir: {}
+        - name: promtail-config
+          configMap:
+            name: loki-promtail-middleware

@@ -1,0 +1,16 @@
+---
+# 内部域名
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-sentinel-out
+  namespace: dev
+spec:
+  selector:
+    app: redis-sentinel
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 6379
+      nodePort: 30189
+  type: LoadBalancer

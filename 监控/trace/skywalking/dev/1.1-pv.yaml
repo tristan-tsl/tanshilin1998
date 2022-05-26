@@ -1,0 +1,28 @@
+---
+# 存储 for oap-es
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: monitor-trace-skywalking-elasticsearch
+  namespace: dev
+spec:
+  storageClassName: rook-ceph-block
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+---
+# 存储 for oap
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: monitor-trace-skywalking-oap
+  namespace: dev
+spec:
+  storageClassName: rook-ceph-block
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi

@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: metershpere-kafka
+  namespace: devops-test-ms
+spec:
+  storageClassName: local-storage
+  volumeName: devops-test-ms-metersphere-kafka
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi

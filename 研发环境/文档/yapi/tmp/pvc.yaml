@@ -1,0 +1,41 @@
+# rm -rf /k8slpv/doc-yapi-mongodb && mkdir -p /k8slpv/doc-yapi-mongodb && chmod 777 /k8slpv/doc-yapi-mongodb
+---
+# 存储
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: doc-yapi-mongodb
+  namespace: doc
+spec:
+  capacity:
+    storage: 100Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /k8slpv/doc-yapi-mongodb
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - 192.168.90.16
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: yapi-mongodb
+  namespace: doc
+spec:
+  storageClassName: local-storage
+  volumeName: doc-yapi-mongodb
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi

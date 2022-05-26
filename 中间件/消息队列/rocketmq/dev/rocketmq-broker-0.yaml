@@ -1,0 +1,143 @@
+---
+# 外部网络
+apiVersion: v1
+kind: Service
+metadata:
+  name: rocketmq-broker-0
+  namespace: dev
+spec:
+  selector:
+    app: rocketmq-broker-0
+  ports:
+    - name: for-31971
+      port: 31971
+      targetPort: 31971
+      nodePort: 31971
+  type: LoadBalancer
+---
+# 内部域名
+apiVersion: v1
+kind: Service
+metadata:
+  name: rocketmq-broker-hs-0
+  namespace: dev
+spec:
+  selector:
+    app: rocketmq-broker-0
+  ports:
+    - name: for-41971
+      port: 41971
+      targetPort: 41971
+  clusterIP: None
+---
+# 服务
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rocketmq-broker-0
+  namespace: dev
+  labels:
+    app: rocketmq-broker-0
+spec:
+  serviceName: rocketmq-broker-0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rocketmq-broker-0
+  template:
+    metadata:
+      labels:
+        app: rocketmq-broker-0
+    spec:
+      containers:
+        - name: rocketmq-broker-0
+          image: ctr-registry.local./ops/rocketmq:4.9.1
+          ports:
+            - containerPort: 30911
+            - containerPort: 40911
+          command:
+            - sh
+            - -c
+            - |
+              #!/usr/bin/env bash -e
+              sed -i "s/-Xms\${Xms}/-Xms1g/g" ${ROCKETMQ_HOME}/bin/runbroker.sh
+              sed -i "s/-Xmx\${Xmx}/-Xmx1g/g" ${ROCKETMQ_HOME}/bin/runbroker.sh
+              sed -i "s/-Xmn\${Xmn}/-Xmn1g/g" ${ROCKETMQ_HOME}/bin/runbroker.sh
+              sed -i "s/RaftCluster/rocket-broker/g" ${ROCKETMQ_HOME}/conf/dledger/broker-n0.conf
+              sed -i "s/RaftNode00/rocket-broker/g" ${ROCKETMQ_HOME}/conf/dledger/broker-n0.conf
+              sed -i "s/30911/31971/g" ${ROCKETMQ_HOME}/conf/dledger/broker-n0.conf
+              echo "brokerIP1=192.168.90.16" >> ${ROCKETMQ_HOME}/conf/dledger/broker-n0.conf
+              sed -i '/storePathRootDir/d'  ${ROCKETMQ_HOME}/conf/dledger/broker-n0.conf
+              sed -i '/storePathCommitLog/d'  ${ROCKETMQ_HOME}/conf/dledger/broker-n0.conf
+              sed -i "s/n0-127.0.0.1:40911;n1-127.0.0.1:40912;n2-127.0.0.1:40913/n0-rocketmq-broker-hs-0:41971;n1-rocketmq-broker-hs-1:40469;n2-rocketmq-broker-hs-2:42413/g" ${ROCKETMQ_HOME}/conf/dledger/broker-n0.conf
+              sed -i "s/dLegerSelfId=n0/dLegerSelfId=n0/g" ${ROCKETMQ_HOME}/conf/dledger/broker-n0.conf
+              cat ${ROCKETMQ_HOME}/conf/dledger/broker-n0.conf
+              ${ROCKETMQ_HOME}/bin/mqbroker -n rocketmq:80 -c ${ROCKETMQ_HOME}/conf/dledger/broker-n0.conf
+              # sleep 9999
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+            - name: RCNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: restart
+              value: "fsdfsf"
+          volumeMounts:
+            - mountPath: /home/rocketmq/store
+              name: rocketmq-broker-0
+            - mountPath: /home/rocketmq/logs
+              name: rocketmq-broker-logs
+          resources:
+            requests:
+              cpu: 1000m
+              memory: 1Gi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: 5000m
+              memory: 5Gi
+              ephemeral-storage: 100Gi
+        - name: promtail
+          image: ctr-registry.local./ops/promtail:2.2.1
+          imagePullPolicy: IfNotPresent
+          args:
+            - -config.file=/etc/promtail/config.yaml
+            - -config.expand-env=true
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+            - name: ENVIRONMENT_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: REPLICASET_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - mountPath: /mnt
+              name: rocketmq-broker-logs
+            - mountPath: /etc/promtail
+              name: promtail-config
+      imagePullSecrets:
+        - name: regcred
+      volumes:
+        - name: rocketmq-broker-logs
+          emptyDir: {}
+        - name: promtail-config
+          configMap:
+            name: loki-promtail-middleware
+  volumeClaimTemplates:
+    - metadata:
+        name: rocketmq-broker-0
+      spec:
+        storageClassName: rook-ceph-block
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 100Gi

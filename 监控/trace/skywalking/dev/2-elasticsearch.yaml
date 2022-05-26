@@ -1,0 +1,73 @@
+---
+# 内部域名
+apiVersion: v1
+kind: Service
+metadata:
+  name: monitor-trace-skywalking-elasticsearch
+  namespace: dev
+spec:
+  selector:
+    app: monitor-trace-skywalking-elasticsearch
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 9200
+
+---
+# 服务
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: monitor-trace-skywalking-elasticsearch
+  namespace: dev
+  labels:
+    app: monitor-trace-skywalking-elasticsearch
+spec:
+  serviceName: monitor-trace-skywalking-elasticsearch
+  replicas: 1
+  selector:
+    matchLabels:
+      app: monitor-trace-skywalking-elasticsearch
+  template:
+    metadata:
+      labels:
+        app: monitor-trace-skywalking-elasticsearch
+    spec:
+      containers:
+        - name: elasticsearch
+          image: ctr-registry.local./ops/elasticsearch:7.14.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9200
+            - containerPort: 9300
+          #        livenessProbe:
+          #          tcpSocket:
+          #            port: 9200
+          #          failureThreshold: 10
+          #          periodSeconds: 60
+          #          initialDelaySeconds: 10
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+            - name: discovery.type
+              value: single-node
+            - name: ES_JAVA_OPTS
+              value: -Xms2g -Xmx4g
+          volumeMounts:
+            - mountPath: /usr/share/elasticsearch/data
+              name: elasticsearch
+              subPath: data
+          resources:
+            requests:
+              cpu: 100m
+              memory: 1Gi
+              ephemeral-storage: 10Gi
+            limits:
+              cpu: 4000m
+              memory: 6Gi
+              ephemeral-storage: 10Gi
+      volumes:
+        - name: elasticsearch
+          persistentVolumeClaim:
+            claimName: monitor-trace-skywalking-elasticsearch
+

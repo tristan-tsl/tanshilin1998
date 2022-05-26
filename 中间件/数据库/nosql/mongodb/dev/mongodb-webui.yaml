@@ -1,0 +1,90 @@
+---
+# 外部网络
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mongodb-webui
+  namespace: dev
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/proxy-buffering: "on"
+    nginx.ingress.kubernetes.io/client-body-buffer-size: 100m
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "800k"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "400"
+spec:
+  rules:
+    - host: mongodb-webui.local.
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: mongodb-webui
+                port:
+                  number: 80
+---
+# 内部网络
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-webui
+  namespace: dev
+  labels:
+    app.kubernetes.io/name: mongodb-webui
+spec:
+  selector:
+    app.kubernetes.io/name: mongodb-webui
+  ports:
+    - name: for-8081
+      port: 80
+      targetPort: 8081
+  type: ClusterIP
+---
+# 服务
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: mongodb-webui
+  name: mongodb-webui
+  namespace: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mongodb-webui
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mongodb-webui
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: mongodb-webui
+          image: mongo-express:0.54.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+              name: http
+          env:
+            - name: "ME_CONFIG_BASICAUTH_USERNAME"
+              value: "mongodb"
+            - name: "ME_CONFIG_BASICAUTH_PASSWORD"
+              value: "mongodb666_"
+            - name: "ME_CONFIG_MONGODB_SERVER"
+              value: "mongodb"
+            - name: "ME_CONFIG_MONGODB_ADMINUSERNAME"
+              value: "root"
+            - name: "ME_CONFIG_MONGODB_ADMINPASSWORD"
+              value: ""
+          resources:
+            requests:
+              cpu: 10m
+              memory: 10Mi
+            limits:
+              cpu: 5000m
+              memory: 5000Mi

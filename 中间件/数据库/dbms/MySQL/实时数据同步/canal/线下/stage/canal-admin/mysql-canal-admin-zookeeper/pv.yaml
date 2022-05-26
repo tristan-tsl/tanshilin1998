@@ -1,0 +1,42 @@
+---
+# 存储 for zk-1
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-canal-admin-zookeeper-1
+  namespace: stage
+spec:
+  storageClassName: rook-ceph-block
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+---
+# 存储 for zk-2
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-canal-admin-zookeeper-2
+  namespace: stage
+spec:
+  storageClassName: rook-ceph-block
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+---
+# 存储 for zk-3
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-canal-admin-zookeeper-3
+  namespace: stage
+spec:
+  storageClassName: rook-ceph-block
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi

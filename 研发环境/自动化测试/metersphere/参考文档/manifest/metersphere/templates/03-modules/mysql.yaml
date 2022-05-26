@@ -1,0 +1,76 @@
+---
+# Source: metersphere/templates/03-modules/mysql.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: metersphere-mysql
+  namespace: devops-test-ms
+  labels:
+    app: metersphere-mysql
+spec:
+  selector:
+    app: metersphere-mysql
+  ports:
+    - name: tcp
+      port: 3306
+      protocol: TCP
+      targetPort: 3306
+      nodePort: 32597
+  type: LoadBalancer
+---
+# Source: metersphere/templates/03-modules/mysql.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+  namespace: devops-test-ms
+spec:
+  replicas: 1
+  serviceName: "metersphere-mysql"
+  selector:
+    matchLabels:
+      app: metersphere-mysql
+  template:
+    metadata:
+      labels:
+        app: metersphere-mysql
+    spec:
+      containers:
+        - name: mysql
+          image: registry.cn-qingdao.aliyuncs.com/metersphere/mysql:5.7.25
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: 300Mi
+              cpu: 100m
+            limits:
+              memory: 6000Mi
+              cpu: 5000m
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: Password123@mysql
+          ports:
+            - name: tcp
+              containerPort: 3306
+          volumeMounts:
+            - mountPath: /etc/mysql/conf.d/my.cnf
+              name: opt-metersphere-config
+              subPath: my.cnf
+            - mountPath: /docker-entrypoint-initdb.d/init.sql
+              name: init-mysql
+              subPath: init.sql
+            - mountPath: /var/lib/mysql
+              name: mysql-data
+              subPath: mysql
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: mysql-config
+          name: opt-metersphere-config
+        - configMap:
+            defaultMode: 420
+            name: mysql-config
+          name: init-mysql
+        - name: mysql-data
+          persistentVolumeClaim:
+            claimName: mysql-data

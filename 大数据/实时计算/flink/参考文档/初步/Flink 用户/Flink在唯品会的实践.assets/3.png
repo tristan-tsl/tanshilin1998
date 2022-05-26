@@ -1,0 +1,1268 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="applicable-device" content="pc,mobile" />
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="data-spm" content="a2c6h" />
+    <title>使用 PHP 和 Phalcon 作 daemon 进程-阿里云开发者社区</title>
+
+    <meta name="keywords" content="消息中间件,前端开发,PHP" />
+    <meta name="description" />
+    <meta property="og:title" content="使用 PHP 和 Phalcon 作 daemon 进程-阿里云开发者社区" />
+    <meta property="og:type" content="website" />
+    <meta property="og:description" />
+    <meta property="og:image" content="https://img.alicdn.com/tfs/TB1LCE1aQ5E3KVjSZFCXXbuzXXa-200-200.png" />
+    <meta property="og:url" content="https://developer.aliyun.com/article/3" />
+
+    <link rel="canonical" href="https://developer.aliyun.com/article/3" />
+
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_422887_nuq15p2zz5154s4i.css" />
+
+    <link rel="stylesheet" href="//g.alicdn.com/aliyun/developer-aliyun-com-fe/2.3.0/css/??articleDetail.css,newDetailCommon.css,medalDialog.css,mathjax.css,yuqueDocViewer.css" />
+
+    
+        <meta name="nav-config" content="topbar=developer,footer=default" />
+        <link rel="stylesheet" href="//g.alicdn.com/aliyun/nav-loader/css/index.css" />
+        <script src="//g.alicdn.com/aliyun/nav-loader/js/index.js" nonce="a0e177bef8044025915e31b417d865b3"></script>
+        <style type="text/css">
+            [data-role-topbar] {
+                min-height: 114px !important;
+            }
+            @media (max-width: 768px) {
+                [data-role-topbar] {
+                    min-height: 50px !important;
+                }
+            }
+        </style>
+    
+
+    <script nonce="a0e177bef8044025915e31b417d865b3">
+        var GLOBAL_CONFIG = {
+            "wechat_disable": false,
+            "articleId": '3',
+            "uccCsrfToken": null,
+            "weibohost": 'http://service.weibo.com/share/share.php?title=%E4%BD%BF%E7%94%A8+PHP+%E5%92%8C+Phalcon+%E4%BD%9C+daemon+%E8%BF%9B%E7%A8%8B&url=https%3A%2F%2Fdeveloper.aliyun.com%2Farticle%2F3',
+            "groupCode": null,
+            "uccDomain": 'https://ucc.aliyun.com',
+            "csrf_key": 'p_csrf',
+            "csrf_val": 'dac9d780-ad27-4396-adf2-85520bc6ca82',
+            "groupInfo": null,
+            "articleRealGroupCode": null,
+            "needLarkJs": false,
+            "larkContent": null,
+            "isLogin": false,
+            "isBest": null,
+            "favoriteBizCategory": 'yq-article',
+            "favoriteObjectId": '3',
+            "likeBizCategory": 'yq-article',
+            "likeObjectId": '3',
+            "followBizCategory": 'developer-user',
+            "followObjectId": '33byj56jvqa4c',
+            "commentNumBizCategory": 'yq-comment-type-article',
+            "commentNumObjectId": '3',
+            "contentIsFolded": false
+        };
+    </script>
+</head>
+<body data-spm="12873639"><script type="text/javascript"
+id="beacon-aplus"
+src="//g.alicdn.com/alilog/mlog/aplus_v2.js"
+exparams="category=&userid=&aplus&yunid=&yunpk=&channel=&cps="
+nonce="a0e177bef8044025915e31b417d865b3"
+cspx="a0e177bef8044025915e31b417d865b3"
+async>
+</script>
+
+
+        <script nonce="a0e177bef8044025915e31b417d865b3">
+            /*<![CDATA[*/
+            !(function(c,b,d,a){c[a]||(c[a]={});c[a].config= {
+                pid: "hl0znr436e@8b95b85ff013e64",
+                appType: "web",
+                imgUrl: "https://arms-retcode.aliyuncs.com/r.png?",
+                sendResource: true,
+                enableLinkTrace: true,
+                behavior: true,
+                enableConsole: true,
+                environment: (function getEnv(){
+                    return document.location.hostname === 'developer.aliyun.com' ? 'prod' : 'local';
+                })(),
+                uid: (function getUID() {
+                    var pk = document.cookie.match(/login_aliyunid_pk=(.*?);/);
+                    var cna = document.cookie.match(/cna=(.*?);/);
+                    return pk && pk.length === 2 ? pk[1] : cna && cna.length === 2 ? cna[1] : "";
+                })()
+            };with(b)with(body)with(insertBefore(createElement("script"),firstChild))setAttribute("crossorigin","",src=d)
+            })(window,document,"https://retcode.alicdn.com/retcode/bl.js","__bl");
+            /*]]>*/
+        </script>
+    
+<div data-role-topbar="developer"></div>
+<div class="article-detail">
+
+    <h1 class="dev-seo-tag">使用 PHP 和 Phalcon 作 daemon 进程-阿里云开发者社区</h1>
+
+    <div class="developer-nav">
+        <a href="/" target="_blank" class="nav-item">开发者社区</a>>
+        <a class="nav-item" target="_blank" data-spm-click="gostr=/developer.article.detail_group;locaid=d1002" href="/profile/33byj56jvqa4c">idealities</a>>
+        <a class="nav-item">正文</a>
+    </div>
+    <div class="article-wrapper">
+        <div class="left-content">
+            <div id="action-btns"></div>
+            <div class="content-wrapper">
+                <h1 class="article-title">使用 PHP 和 Phalcon 作 daemon 进程</h1>
+                <p class="article-info">
+                    
+                    <span class="article-info-time">2015-12-03</span>
+                    <!--<span class="article-info-collection">22</span>-->
+                    <span class="article-info-read">5162</span>
+                    <!--<span class="article-info-zan">222</span>-->
+                    <!--<span class="article-info-comment">222</span>-->
+                    
+                </p>
+                
+                
+
+                
+
+                <div class="article-desc">
+                    <b>简介：</b>
+                    <span></span>
+                </div>
+
+                <div class="article-hide-content" style="height: auto;">
+                    <div class="article-hide-box">
+                        <div class="article-hide-line"></div>
+                        <div class="article-hide-btn" id="btn-readmore">+关注继续查看</div>
+                    </div>
+                    <div class="article-inner markdown-body">
+<p>某些情况下，我们除了提供web界面给用户，还需要运行一些后台任务。这些任务可能是由用户触发的（比如用户提交了一个请求，而这种请求很特殊，例如从github克隆一个项目并执行构建，至少需要几分钟才能执行完成，这种情况不适合阻塞的方式让浏览器等待结果返回）；也可能是一些常规性的系统任务（比如将日志进行归档，转移到统一的地方进行备份）。前者一般是引入消息队列，用户的请求只是增加了一条待构建的消息到消息队列，然后有一个专门的订阅者读取消息，调度分发执行这个任务。后者最简单的方式便是crontab，但缺点是每个机器需要单独进行设置，不易维护；当然也可以通过一个统一的调度器，分发任务到多个任务节点的方式来执行。</p>
+<p>这里只说第一种情况，业务背景是许可范围内按照用户的配置生成移动端APP。对于Android，项目构建可以使用Ant或者<a href="https://developer.android.com/tools/building/configuring-gradle.html">Gradle</a>，这样可以通过命令行调用，在程序中就可以fork一个进程，设置相应的参数来执行了。</p>
+<p>对于不同的Android APP，<a href="http://developer.android.com/guide/topics/manifest/manifest-element.html#package">package name</a>需要是不同的；除此之外，对于用户的一些配置，也会体现到最终待构建的项目文件中。因此，只能生成一套APP的模板代码，按照用户的输入，修改java代码和资源文件，最后再执行构建产生apk。这个<a href="http://developer.android.com/sdk/installing/studio-build.html">构建过程</a>可能需要几分钟。</p>
+<p>这里我们采用的方案是有一个单独的daemon进程，读取消息队列，得到前端写入的待构建的消息，fork进程执行Ant，完成构建后（成功或失败）将状态写入数据库，前端采用定期查询的方式以便获知任务是否结束。这样daemon进程的逻辑相对简单，构建的过程都是发生在其他进程空间的，不会对daemon进程产生影响。</p>
+<p>代码采用了类似 Phalcon <a href="https://github.com/phalcon/mvc">示例</a> 中<code>Multiple</code>的形式。</p>
+<h1>启动程序</h1>
+<p>命令行的入口文件，参考 @guweigang 的falcon，通过一些参数指定运行哪个模块，哪个action，以及传递给action的参数。这里通过<code>getopt</code>解析命令行参数，<code>-d</code>决定了是否变成<a href="http://www.enderunix.org/docs/eng/daemon.php">daemon</a>进程。</p>
+<pre><code class="php">&lt;?php
+
+/**
+ * Usage:
+ * php console.php -d -m module-name -t task-name -a action-name -p parameters
+ *
+ * If you has multiple parameters to pass to an action, use it like this:
+ * -p first -p second
+ *
+ */
+
+error_reporting(E_ALL);
+ini_set("memory_limit", "4G");
+
+$HELP_TEXT = &lt;&lt;&lt;EOT
+appcreator console
+
+usage: php console.php [OPTION]... [PARAMS]...
+
+    -h, --help show help message
+    -d, --daemon running as daemon
+    -m, --module specify module
+    -t, --task specify task
+    -a, --action specify action
+    -p, --param parameter passed to action
+
+:)
+
+EOT;
+
+try {
+    $opts = "dm:t:a:p:h";
+    $longopts = array(
+                "module:",
+                "task:",
+                "action:",
+                "param:",
+                "help",
+                "daemon",
+                );
+    $options = getopt($opts, $longopts);
+    if (isset($options['h']) || isset($options['help'])) {
+        print($HELP_TEXT);
+        exit(0);
+    }
+    if (isset($options['d']) || isset($options['daemon'])) {
+        $pid = pcntl_fork();
+        if ($pid == -1) {
+            error_log('fork process failed');
+            exit(1);
+        } elseif ($pid) {
+            // if in parent process, exit
+            exit(0);
+        }
+
+        fclose(STDIN);
+        fclose(STDOUT);
+        fclose(STDERR);
+
+        // TODO
+        $STDIN = fopen('/dev/null', 'r');
+        $STDOUT = fopen('/dev/null', 'w');
+        $STDERR = fopen('/dev/null', 'w');
+
+        posix_setsid();
+    }
+
+    $args = array();
+    // 处理传递给action的参数
+    foreach(array('p', 'param') as $p) {
+        if (isset($options[$p])) {
+            if (is_array($options[$p])) {
+                $args = array_merge($options[$p]);
+            } else {
+                $args[] = $options[$p];
+            }
+        }
+    }
+
+    if (!isset($options['a']) &amp;&amp; !isset($options['action'])) {
+        error_log('Please specify the action you want to run with -a or --action');
+        exit(1);
+    }
+
+    /*
+     * set cli parameters
+     */
+    $args['module'] = (isset($options['m']) || isset($options['module'])) ? (
+                       isset($options['m']) ? $options['m'] : $options['module']) : 'appcreator';
+    $args['task'] = (isset($options['t']) || isset($options['task'])) ? (
+                       isset($options['t']) ? $options['t'] : $options['task']) : 'package';
+    $args['action'] = isset($options['a']) ? $options['a'] : $options['action'];
+
+    /*
+     * 这里实例化\Phalcon\CLI\Console并加载服务和模块
+     */
+    $application = new \Phalcon\CLI\Console();
+    
+    /* load services and modules */
+    ...
+
+    /* Finally handle args */
+    $application-&gt;handle($args);
+} catch (Exception $e) {
+    error_log('[AppCreator]' . $e-&gt;getMessage() . ' @ ' . $e-&gt;getFile() . ':' . $e-&gt;getLine());
+    echo $e-&gt;getMessage();
+    echo "\n\nBacktrace:" . $e-&gt;getTraceAsString()."\n";
+}</code></pre>
+<h2>循环读取消息，执行任务</h2>
+<p>这里是真正的daemon进程执行的代码。目前的逻辑比较简单，就是定期获取前端写入的待构建的消息，创建进程执行一次构建任务。</p>
+<pre><code class="php">&lt;?php
+
+public function daemonAction()
+{
+    // change to working dir
+    chdir(WORKING_DIR);
+
+    // install signal handlers
+    $this-&gt;_setupSignals();
+
+    $nextWakeUp = 0;
+
+    // 每隔时间检查一次当前需不需要生成APP
+    while(1) {
+        $this-&gt;roused = FALSE;
+        if ($nextWakeUp &lt;= time()) {
+            $nextWakeUp = time() + self::SLEEP_SECONDS;
+        }
+
+        sleep($nextWakeUp - time());
+        pcntl_signal_dispatch();
+        if ($this-&gt;roused) {
+            continue;
+        }
+
+        $limit = self::MAX_PROCESS - count(self::$childs);
+        // exceeds process limit
+        if ($limit &lt;= 0) {
+            continue;
+        }
+        
+        // find todo tasks
+        $tasks = ...;
+        foreach ($tasks as $task) {
+            $pid = $this-&gt;_runTask($task);
+        }
+    }
+}</code></pre>
+<h1>通过子进程执行任务</h1>
+<p><code>_runTask()</code>其实就是调用一个新的PHP进程，执行特定的action。我们在这个action再去fork进程执行<code>Ant</code>或者<code>Gradle</code>。</p>
+<pre><code class="php">&lt;?php
+
+private function _runTask($task)
+{
+    $pid = pcntl_fork();
+
+    if ($pid == -1) {
+        return FALSE;
+    } else if ($pid) {
+        return $pid;
+    } else {
+        pcntl_exec($_SERVER['_'], $this-&gt;_getTaskCommand($task));
+        // fork succeed but exec failed,
+        // need to be _exit(). actually exit() will cause problem
+        exit(1);
+    }
+}</code></pre>
+<h1>signal处理</h1>
+<p>这里daemon进程处理的signal比较简单，主要就是需要退出和需要wait子进程结束的信息，以便OS清理其留在进程表中的信息。但是<code>pcntl_signal_dispatch()</code>有个问题，有可能两个接近同时退出的子进程，会导致可能当时只发了一个SIGCHLD的信号，另一个信号下一次dispatch才会发出，所以只能通过循环来wait。</p>
+<p>signal handler需要注意一些问题，<a href="http://www.linuxprogrammingblog.com/all-about-linux-signals">这篇文章</a>有很详尽的介绍，非常值得一读。也可以看看Nginx中是怎么做的。signal是古老UNIX的产物，signal handler是异步触发的，这导致如果signal handler不是可重入的话，很可能会出现问题，虽然一般情况可能不会发生。更现代的处理方式是signalfd（类似的东西还有eventfd，timerfd）,这个fd可以通过<code>select</code>，<code>epoll</code>来监听，有时候和程序的事件机制就结合在一起了。</p>
+<pre><code class="php">&lt;?php
+
+private function _setupSignals()
+{
+    pcntl_signal(SIGTERM, array($this, "signalHandler"));
+    pcntl_signal(SIGINT,  array($this, "signalHandler"));
+    pcntl_signal(SIGCHLD, array($this, "signalHandler"));
+}
+
+protected function signalHandler($signo)
+{
+    $this-&gt;roused = TRUE;
+    switch($signo) {
+    case SIGTERM:
+    case SIGINT:
+        exit(1);
+    case SIGCHLD:
+        while(1) {
+            $pid = pcntl_wait($status, WNOHANG);
+            if ($pid == 0) {
+                break;
+            }
+            if ($pid &gt; 0) {
+                // logs
+            } else {
+                break;
+            }
+            if (!pcntl_wifexited($status)) {
+                // error happened
+            } else if (($code = pcntl_wexitstatus($status)) != 0) {
+                // error happened
+            } else {
+                // normal exit
+            }
+        }
+        break;
+    default:
+        break;
+    }
+}</code></pre>
+</div>
+                    
+                </div>
+
+                <div class="article-copyright">
+                    <p class="article-copyright-info">
+                        <b>版权声明：</b><span>本文内容由阿里云实名注册用户自发贡献，版权归原作者所有，阿里云开发者社区不拥有其著作权，亦不承担相应法律责任。具体规则请查看《<a style="color:#ff6a00" target="_blank" href="https://developer.aliyun.com/article/768092">阿里云开发者社区用户服务协议</a>》和《<a style="color:#ff6a00" target="_blank" href="https://developer.aliyun.com/article/768093">阿里云开发者社区知识产权保护指引</a>》。如果您发现本社区中有涉嫌抄袭的内容，填写<a target="_blank" style="color:#ff6a00" href="https://yida.alibaba-inc.com/o/right">侵权投诉表单</a>进行举报，一经查实，本社区将立刻删除涉嫌侵权内容。</span></p>
+                </div>
+
+                <div class="article-tags">
+                    <span class="tag-item"><a target="_blank" href="/label/sc/article_de-3-100031">消息中间件</a></span>
+                    <span class="tag-item"><a target="_blank" href="/label/sc/article_de-3-100013">前端开发</a></span>
+                    <span class="tag-item"><a target="_blank" href="/label/sc/article_de-3-100006">PHP</a></span>
+                </div>
+                <div class="article-keywords">
+                    <span class="keyword-item"><a target="_blank" href="https://www.aliyun.com/sswc/278200.html">开发实战消息中间件</a></span>
+                    <span class="keyword-item"><a target="_blank" href="https://www.aliyun.com/sswc/415198.html">消息前端</a></span>
+                    <span class="keyword-item"><a target="_blank" href="https://www.aliyun.com/sswc/650342.html">php使用驱动</a></span>
+                    <span class="keyword-item"><a target="_blank" href="https://www.aliyun.com/sswc/440810.html">php带宽</a></span>
+                    <span class="keyword-item"><a target="_blank" href="https://www.aliyun.com/sswc/475956.html">使用daemon</a></span>
+                </div>
+                <div class="group-list">
+                    <a href="/" target="_blank" class="group-nav">开发者社区</a> >
+                    <span class="keyword-item">
+                        <a target="_blank" href="/group/othertech/">开发与运维</a>
+                        <span> > </span>
+                        <a target="_blank" href="/group/othertech/article/">文章</a>
+                    </span>
+                </div>
+            </div>
+
+            
+
+            <div class="article-follows">
+                <div class="article-follows-title"></div>
+                <div class="article-follows-list"></div>
+            </div>
+
+            <div class="right-item-box highscore-box highscore-box-h5">
+    <div class="right-item-title">
+        <div class="right-item-title-text">作者高分内容</div>
+        <a target="_blank" class="right-item-title-link" href="/profile/33byj56jvqa4c">更多</a>
+    </div>
+    <div class="highscore-article-list">
+        <a target="_blank" href="https://developer.aliyun.com/article/715003" class="highscore-article-item">
+            <span class="highscore-article-item-title">推荐一个单元测试库</span>
+            <span class="highscore-article-item-red">365</span>
+        </a>
+        <a target="_blank" href="https://developer.aliyun.com/article/715001" class="highscore-article-item">
+            <span class="highscore-article-item-title">推荐一个单元测试库</span>
+            <span class="highscore-article-item-red">358</span>
+        </a>
+        <a target="_blank" href="https://developer.aliyun.com/article/714299" class="highscore-article-item">
+            <span class="highscore-article-item-title">推荐一个单元测试库</span>
+            <span class="highscore-article-item-red">25603</span>
+        </a>
+        <a target="_blank" href="https://developer.aliyun.com/article/714022" class="highscore-article-item">
+            <span class="highscore-article-item-title">在html中展示命令执行日志</span>
+            <span class="highscore-article-item-red">691</span>
+        </a>
+        <a target="_blank" href="https://developer.aliyun.com/ask/130570" class="highscore-ask-item">
+            <span class="highscore-article-item-title">请问微服务里的sidecar是什么？</span>
+            <span class="highscore-article-item-red">1057</span>
+        </a>
+    </div>
+</div>
+
+            <div class="article-comment">
+                <div id="comment"></div>
+            </div>
+            <div class="article-feed">
+                <div class="article-feed-title">相关文章</div>
+               <div class="article-feed-list">
+                    <div>
+    <div data-id="yq-article701184" class="feed-item">
+        <div class="feed-item-content">
+            <a class="feed-item-img" target="_blank" href="/article/701184">
+                
+            </a>
+            <div class="feed-item-top">
+                <div class="feed-item-author-box">
+                    <img class="author-img" alt="" src="https://ucc.alicdn.com/avatar/bbs_avatar_34_1685500549888234.jpg" />
+                    
+                    
+                </div>
+
+                <div class="feed-item-top-title">
+                    <a class="feed-item-top-title-link" target="_blank" href="/profile/gmgrws4cue6ek">阿里云小秘</a>
+                    <span class="feed-item-top-title-split"></span>
+                    <span></span>
+                </div>
+            </div>
+            <a class="feed-item-title" target="_blank" href="/article/701184">
+                <span>阿里云服务器怎么设置密码？怎么停机？怎么重启服务器？</span>
+            </a>
+            <div class="feed-item-desc">如果在创建实例时没有设置密码，或者密码丢失，您可以在控制台上重新设置实例的登录密码。本文仅描述如何在 ECS 管理控制台上修改实例登录密码。</div>
+            <div class="feed-item-bot">
+                <div class="feed-item-info">
+                    <span class="feed-item-label feed-item-count">9489</span>
+                    <span class="feed-item-label feed-item-comment" data-id="701184">0</span>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <div data-id="yq-article532763" class="feed-item">
+        <div class="feed-item-content">
+            <a class="feed-item-img" target="_blank" href="/article/532763">
+                
+            </a>
+            <div class="feed-item-top">
+                <div class="feed-item-author-box">
+                    <img class="author-img" alt="" src="https://ucc.alicdn.com/avatar/img_95151a8de33148145a7bd370b889639a.png" />
+                    
+                    
+                </div>
+
+                <div class="feed-item-top-title">
+                    <a class="feed-item-top-title-link" target="_blank" href="/profile/gouchxrqo5l2g">suboysugar</a>
+                    <span class="feed-item-top-title-split"></span>
+                    <span></span>
+                </div>
+            </div>
+            <a class="feed-item-title" target="_blank" href="/article/532763">
+                <span>***实用函数：PHP explode()函数用法、切分字符串，作用，将字符串打散成数组</span>
+            </a>
+            <div class="feed-item-desc">下面是根据explode()函数写的切分分割字符串的php函数，主要php按开始和结束截取中间数据，很实用
+代码如下:
+
+ 
+
+explode定义和用法 explode() 函数把字符串分割为数组。 语法 explode(separator,string,limit) 
+
+
+参数
+描述
+
+
+separator
+必需。</div>
+            <div class="feed-item-bot">
+                <div class="feed-item-info">
+                    <span class="feed-item-label feed-item-count">1462</span>
+                    <span class="feed-item-label feed-item-comment" data-id="532763">0</span>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <div data-id="yq-article638743" class="feed-item">
+        <div class="feed-item-content">
+            <a class="feed-item-img" target="_blank" href="/article/638743">
+                
+            </a>
+            <div class="feed-item-top">
+                <div class="feed-item-author-box">
+                    <img class="author-img" alt="" src="https://ucc.alicdn.com/avatar/img_694c5dfde688937314a90a64fb4bbf9d.jpg" />
+                    
+                    
+                </div>
+
+                <div class="feed-item-top-title">
+                    <a class="feed-item-top-title-link" target="_blank" href="/profile/cm3nrcumjb6qi">fqja.com</a>
+                    <span class="feed-item-top-title-split"></span>
+                    <span></span>
+                </div>
+            </div>
+            <a class="feed-item-title" target="_blank" href="/article/638743">
+                <span>supervisor守护进程的安装使用</span>
+            </a>
+            <div class="feed-item-desc"></div>
+            <div class="feed-item-bot">
+                <div class="feed-item-info">
+                    <span class="feed-item-label feed-item-count">1807</span>
+                    <span class="feed-item-label feed-item-comment" data-id="638743">0</span>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <div data-id="yq-article342785" class="feed-item">
+        <div class="feed-item-content">
+            <a class="feed-item-img" target="_blank" href="/article/342785">
+                
+            </a>
+            <div class="feed-item-top">
+                <div class="feed-item-author-box">
+                    <img class="author-img" alt="" src="https://ucc.alicdn.com/avatar/img_74e24d2d44f32620ec8c4bcd395c1b14.png" />
+                    
+                    
+                </div>
+
+                <div class="feed-item-top-title">
+                    <a class="feed-item-top-title-link" target="_blank" href="/profile/rvkfcb4bzg27q">微wx笑</a>
+                    <span class="feed-item-top-title-split"></span>
+                    <span></span>
+                </div>
+            </div>
+            <a class="feed-item-title" target="_blank" href="/article/342785">
+                <span>CentOS6.5下使用NetHogs监控进程网络使用情况</span>
+            </a>
+            <div class="feed-item-desc">
+Nethogs 是一个终端下的网络流量监控工具，它的特别之处在于可以显示每个进程的带宽占用情况，这样可以更直观获取网络使用情况。它支持 IPv4 和 IPv6 协议、支持本地网卡及 PPP 链接。
+下载：
+从SourceForge上下载nethogs-0.</div>
+            <div class="feed-item-bot">
+                <div class="feed-item-info">
+                    <span class="feed-item-label feed-item-count">454</span>
+                    <span class="feed-item-label feed-item-comment" data-id="342785">0</span>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <div data-id="yq-article755471" class="feed-item includeimg">
+        <div class="feed-item-content">
+            <a class="feed-item-img" target="_blank" href="/article/755471">
+                <img class="img" alt="" src="https://yqfile.alicdn.com/19dfcdb8fb8df66a06355748e4491fb06ab80004.png?x-oss-process=image/resize,h_118" />
+            </a>
+            <div class="feed-item-top">
+                <div class="feed-item-author-box">
+                    <img class="author-img" alt="" src="https://ucc.alicdn.com/avatar/avatar3.jpg" />
+                    
+                    
+                </div>
+
+                <div class="feed-item-top-title">
+                    <a class="feed-item-top-title-link" target="_blank" href="/profile/ircufyqndgrlu">a里上云建设</a>
+                    <span class="feed-item-top-title-split"></span>
+                    <span></span>
+                </div>
+            </div>
+            <a class="feed-item-title" target="_blank" href="/article/755471">
+                <span>阿里云服务器如何登录？阿里云服务器的三种登录方法</span>
+            </a>
+            <div class="feed-item-desc">                                                                      购买阿里云ECS云服务器后如何登录？场景不同，阿里云优惠总结大概有三种登录方式：
+登录到ECS云服务器控制台
+在ECS云服务器控制台用户可以更改密码、更换系.</div>
+            <div class="feed-item-bot">
+                <div class="feed-item-info">
+                    <span class="feed-item-label feed-item-count">13172</span>
+                    <span class="feed-item-label feed-item-comment" data-id="755471">0</span>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <div data-id="yq-article70935" class="feed-item">
+        <div class="feed-item-content">
+            <a class="feed-item-img" target="_blank" href="/article/70935">
+                
+            </a>
+            <div class="feed-item-top">
+                <div class="feed-item-author-box">
+                    <img class="author-img" alt="" src="https://ucc.alicdn.com/avatar/avatar3.jpg" />
+                    
+                    
+                </div>
+
+                <div class="feed-item-top-title">
+                    <a class="feed-item-top-title-link" target="_blank" href="/profile/2cj2wp6f7yysw">terry.zeng</a>
+                    <span class="feed-item-top-title-split"></span>
+                    <span></span>
+                </div>
+            </div>
+            <a class="feed-item-title" target="_blank" href="/article/70935">
+                <span>memcached 使用 daemon 脚本</span>
+            </a>
+            <div class="feed-item-desc">
+
+
+1. 编译 memcached (略)
+ 
+2. 配置文件 /etc/memcached.conf
+#Memory a user
+-m 512
+# default port
+-p 11211
+# user to run daemon nobody/apache/www-data
+-u daemon
+# only listen locally
+-l 10.1.1.27
+# thre</div>
+            <div class="feed-item-bot">
+                <div class="feed-item-info">
+                    <span class="feed-item-label feed-item-count">985</span>
+                    <span class="feed-item-label feed-item-comment" data-id="70935">0</span>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <div data-id="yq-article313364" class="feed-item">
+        <div class="feed-item-content">
+            <a class="feed-item-img" target="_blank" href="/article/313364">
+                
+            </a>
+            <div class="feed-item-top">
+                <div class="feed-item-author-box">
+                    <img class="author-img" alt="" src="https://ucc.alicdn.com/avatar/img_16712ac8be0e60d11922b2b38c370d69.JPG" />
+                    
+                    
+                </div>
+
+                <div class="feed-item-top-title">
+                    <a class="feed-item-top-title-link" target="_blank" href="/profile/ciehyuhaikb7a">xalion</a>
+                    <span class="feed-item-top-title-split"></span>
+                    <span></span>
+                </div>
+            </div>
+            <a class="feed-item-title" target="_blank" href="/article/313364">
+                <span>使用delphi 10.2 开发linux 上的Daemon</span>
+            </a>
+            <div class="feed-item-desc">delphi 10.2 支持linux, 而且官方只是支持命令行编程，目地就是做linux 服务器端的开发。
+既然是做linux服务器端的开发，那么普通的命令行运行程序，然后等待开一个黑窗口的方式就
+太low了（目前就有个别语言大咖，经常在Windows 上开个黑窗口，看起来非常恶心），那么如果
+避免这个尴尬的问题？
+    其实Linux 下也有类似windows 服务的功能，Linux Daemon 就是其中的一种方式，命令行运行后
+直接返回，同时在后台建立一个同样的进程。</div>
+            <div class="feed-item-bot">
+                <div class="feed-item-info">
+                    <span class="feed-item-label feed-item-count">1309</span>
+                    <span class="feed-item-label feed-item-comment" data-id="313364">0</span>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <div data-id="yq-article507143" class="feed-item">
+        <div class="feed-item-content">
+            <a class="feed-item-img" target="_blank" href="/article/507143">
+                
+            </a>
+            <div class="feed-item-top">
+                <div class="feed-item-author-box">
+                    <img class="author-img" alt="" src="https://ucc.alicdn.com/avatar/avatar3.jpg" />
+                    
+                    
+                </div>
+
+                <div class="feed-item-top-title">
+                    <a class="feed-item-top-title-link" target="_blank" href="/profile/fy5hholq4xfqs">余二五</a>
+                    <span class="feed-item-top-title-split"></span>
+                    <span></span>
+                </div>
+            </div>
+            <a class="feed-item-title" target="_blank" href="/article/507143">
+                <span>LNMP（php-fpm的pool，慢执行日志，定义open_bashdir，php-fpm进程管理</span>
+            </a>
+            <div class="feed-item-desc"></div>
+            <div class="feed-item-bot">
+                <div class="feed-item-info">
+                    <span class="feed-item-label feed-item-count">1164</span>
+                    <span class="feed-item-label feed-item-comment" data-id="507143">0</span>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <div data-id="yq-article111628" class="feed-item">
+        <div class="feed-item-content">
+            <a class="feed-item-img" target="_blank" href="/article/111628">
+                
+            </a>
+            <div class="feed-item-top">
+                <div class="feed-item-author-box">
+                    <img class="author-img" alt="" src="https://ucc.alicdn.com/avatar/img_3224ecd58e9242b6e55c05dafec32131.jpg" />
+                    
+                    
+                </div>
+
+                <div class="feed-item-top-title">
+                    <a class="feed-item-top-title-link" target="_blank" href="/profile/kqadmzd2h7t36">知与谁同</a>
+                    <span class="feed-item-top-title-split"></span>
+                    <span></span>
+                </div>
+            </div>
+            <a class="feed-item-title" target="_blank" href="/article/111628">
+                <span>使用 nice、cpulimit 和 cgroups 获取进程的 CPU 使用率</span>
+            </a>
+            <div class="feed-item-desc"></div>
+            <div class="feed-item-bot">
+                <div class="feed-item-info">
+                    <span class="feed-item-label feed-item-count">1253</span>
+                    <span class="feed-item-label feed-item-comment" data-id="111628">0</span>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <div data-id="yq-article197386" class="feed-item">
+        <div class="feed-item-content">
+            <a class="feed-item-img" target="_blank" href="/article/197386">
+                
+            </a>
+            <div class="feed-item-top">
+                <div class="feed-item-author-box">
+                    <img class="author-img" alt="" src="https://ucc.alicdn.com/avatar/img_fd41ec0cd813efb113cf2f741a92a8a8.JPG" />
+                    
+                    
+                </div>
+
+                <div class="feed-item-top-title">
+                    <a class="feed-item-top-title-link" target="_blank" href="/profile/c6vgwmhjwgv5q">行者武松</a>
+                    <span class="feed-item-top-title-split"></span>
+                    <span></span>
+                </div>
+            </div>
+            <a class="feed-item-title" target="_blank" href="/article/197386">
+                <span>PHP常用的基本文件和目录操作总结</span>
+            </a>
+            <div class="feed-item-desc"></div>
+            <div class="feed-item-bot">
+                <div class="feed-item-info">
+                    <span class="feed-item-label feed-item-count">1062</span>
+                    <span class="feed-item-label feed-item-comment" data-id="197386">0</span>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="right-box">
+            <div class="right-item-box author-box">
+    <div class="right-item-box author-box">
+        <div class="author-info">
+            <div class="author-left">
+                <div class="author-img-box">
+                    <a target="_blank" href="/profile/33byj56jvqa4c">
+                        <img class="author-img" src="https://ucc.alicdn.com/avatar/f62cf6a138844fbdad336da035fff7e1.png" />
+                    </a>
+                    
+                </div>
+                <div class="author-left-btn">+关注</div>
+            </div>
+            <div class="author-right">
+                <a target="_blank" class="author-right-name" href="/profile/33byj56jvqa4c">idealities</a>
+                <div class="author-right-desc">https://github.com/ideal</div>
+            </div>
+        </div>
+        <div class="author-data">
+            <div class="author-data-article">
+                <div class="author-data-num">14</div>
+                <div class="author-data-text">文章</div>
+            </div>
+            <div class="author-data-ask">
+                <div class="author-data-num">66</div>
+                <div class="author-data-text">问答</div>
+            </div>
+            <!--
+            <div class="author-data-fans">
+                <div class="author-data-num">999999</div>
+                <div class="author-data-text">粉丝</div>
+            </div> -->
+        </div>
+    </div>
+</div>
+            <div class="right-item-box highscore-box">
+    <div class="right-item-title">
+        <div class="right-item-title-text">作者高分内容</div>
+        <a target="_blank" class="right-item-title-link" href="/profile/33byj56jvqa4c">更多</a>
+    </div>
+    <div class="highscore-article-list">
+        <a target="_blank" href="https://developer.aliyun.com/article/715003" class="highscore-article-item">
+            <span class="highscore-article-item-title">推荐一个单元测试库</span>
+            <span class="highscore-article-item-red">365</span>
+        </a>
+        <a target="_blank" href="https://developer.aliyun.com/article/715001" class="highscore-article-item">
+            <span class="highscore-article-item-title">推荐一个单元测试库</span>
+            <span class="highscore-article-item-red">358</span>
+        </a>
+        <a target="_blank" href="https://developer.aliyun.com/article/714299" class="highscore-article-item">
+            <span class="highscore-article-item-title">推荐一个单元测试库</span>
+            <span class="highscore-article-item-red">25603</span>
+        </a>
+        <a target="_blank" href="https://developer.aliyun.com/article/714022" class="highscore-article-item">
+            <span class="highscore-article-item-title">在html中展示命令执行日志</span>
+            <span class="highscore-article-item-red">691</span>
+        </a>
+        <a target="_blank" href="https://developer.aliyun.com/ask/130570" class="highscore-ask-item">
+            <span class="highscore-article-item-title">请问微服务里的sidecar是什么？</span>
+            <span class="highscore-article-item-red">1057</span>
+        </a>
+    </div>
+</div>
+            
+            <div class="right-item-box rank-box">
+    <div class="right-item-title">
+        <div class="right-item-title-text">文章排行榜</div>
+        <div class="rank-tab">
+            <div class="rank-tab-item active">最热</div>
+            <div class="rank-tab-item">最新</div>
+        </div>
+    </div>
+    <div class="rank-list">
+        <div class="rank-swiper-box active">
+            <div class="swiper-container swiper-hot-rank-container">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/834427">
+                            <span class="swiper-slide-link-num">1</span>
+                            <span class="swiper-slide-link-text">免费下载|《Top20低代码实践案例》独家上线 数据互通、降本提效、企业数字化变身的秘密都在这里！</span>
+                            <span class="swiper-slide-link-view">168526</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/841053">
+                            <span class="swiper-slide-link-num">2</span>
+                            <span class="swiper-slide-link-text">13个实验带你玩转MaxCompute SQL之JSON操作</span>
+                            <span class="swiper-slide-link-view">161078</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/826593">
+                            <span class="swiper-slide-link-num">3</span>
+                            <span class="swiper-slide-link-text">实战：使用Spring Boot Admin实现运维监控平台</span>
+                            <span class="swiper-slide-link-view">121793</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/840749">
+                            <span class="swiper-slide-link-num">4</span>
+                            <span class="swiper-slide-link-text">阿里云丨洛神·云网络 发布业界首本《云计算公网质量白皮书》</span>
+                            <span class="swiper-slide-link-view">34480</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/830581">
+                            <span class="swiper-slide-link-num">5</span>
+                            <span class="swiper-slide-link-text">深入浅出时序数据库 – 智能互联系统基础设施</span>
+                            <span class="swiper-slide-link-view">21569</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/829636">
+                            <span class="swiper-slide-link-num">6</span>
+                            <span class="swiper-slide-link-text">我与阿里云IoT的故事</span>
+                            <span class="swiper-slide-link-view">20620</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/839715">
+                            <span class="swiper-slide-link-num">7</span>
+                            <span class="swiper-slide-link-text">独家下载！认知智能大咖观点最新出炉！带你揭秘强大技术背后的影响力！</span>
+                            <span class="swiper-slide-link-view">14515</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/832594">
+                            <span class="swiper-slide-link-num">8</span>
+                            <span class="swiper-slide-link-text">认证故事|我与阿里云认证的故事#学考故事</span>
+                            <span class="swiper-slide-link-view">110171</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/818190">
+                            <span class="swiper-slide-link-num">9</span>
+                            <span class="swiper-slide-link-text">信不信十分钟让你彻底搞懂java反射</span>
+                            <span class="swiper-slide-link-view">15549</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/817637">
+                            <span class="swiper-slide-link-num">10</span>
+                            <span class="swiper-slide-link-text">一个demo让你彻底理解线程池工作流程</span>
+                            <span class="swiper-slide-link-view">16092</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/799787">
+                            <span class="swiper-slide-link-num">11</span>
+                            <span class="swiper-slide-link-text">印象最深的一个bug——排查修复问题事件BEX引发的谷歌浏览器闪退崩溃异常</span>
+                            <span class="swiper-slide-link-view">28567</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/816695">
+                            <span class="swiper-slide-link-num">12</span>
+                            <span class="swiper-slide-link-text">synchronized底层实现原理（保证看懂）</span>
+                            <span class="swiper-slide-link-view">14911</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/816538">
+                            <span class="swiper-slide-link-num">13</span>
+                            <span class="swiper-slide-link-text">redis淘汰策略及3.x与4.x区别</span>
+                            <span class="swiper-slide-link-view">14868</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/816649">
+                            <span class="swiper-slide-link-num">14</span>
+                            <span class="swiper-slide-link-text">String str = new String(“abc“)到底new了几个对象</span>
+                            <span class="swiper-slide-link-view">14701</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/816901">
+                            <span class="swiper-slide-link-num">15</span>
+                            <span class="swiper-slide-link-text">八旬老人废寝忘食，只为学会Java快速排序，今天他终于学会了</span>
+                            <span class="swiper-slide-link-view">14503</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/816922">
+                            <span class="swiper-slide-link-num">16</span>
+                            <span class="swiper-slide-link-text">二叉树的三种遍历方式，含demo（递归与非递归）</span>
+                            <span class="swiper-slide-link-view">14440</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/800322">
+                            <span class="swiper-slide-link-num">17</span>
+                            <span class="swiper-slide-link-text">并发编程实践之公平有界阻塞队列实现</span>
+                            <span class="swiper-slide-link-view">30283</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/817558">
+                            <span class="swiper-slide-link-num">18</span>
+                            <span class="swiper-slide-link-text">java睡眠排序</span>
+                            <span class="swiper-slide-link-view">14284</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/829641">
+                            <span class="swiper-slide-link-num">19</span>
+                            <span class="swiper-slide-link-text">新手建站就用这个方法，无需购买服务器10分钟快速部署你的静态网页</span>
+                            <span class="swiper-slide-link-view">14768</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/807752">
+                            <span class="swiper-slide-link-num">20</span>
+                            <span class="swiper-slide-link-text">阿里云发布云原生加速器，携手生态企业拥抱数字时代</span>
+                            <span class="swiper-slide-link-view">15248</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-pagination swiper-hot-rank-pagination"></div>
+        </div>
+        <div class="rank-swiper-box">
+            <div class="swiper-container swiper-new-rank-container">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/859454">
+                            <span class="swiper-slide-link-num">1</span>
+                            <span class="swiper-slide-link-text">关于“冬季实战营第一期”的学习报告</span>
+                            <span class="swiper-slide-link-view">68</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/859420">
+                            <span class="swiper-slide-link-num">2</span>
+                            <span class="swiper-slide-link-text">工商银行实时大数据平台建设历程及展望</span>
+                            <span class="swiper-slide-link-view">281</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/859388">
+                            <span class="swiper-slide-link-num">3</span>
+                            <span class="swiper-slide-link-text">产业白热化竞争来临，看人工智能如何带动经济数智化发展</span>
+                            <span class="swiper-slide-link-view">67</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/859358">
+                            <span class="swiper-slide-link-num">4</span>
+                            <span class="swiper-slide-link-text">冬季实战营第一期：从零到一上手玩转云服务器</span>
+                            <span class="swiper-slide-link-view">1422</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/859354">
+                            <span class="swiper-slide-link-num">5</span>
+                            <span class="swiper-slide-link-text">学习报告——冬季实战营第一期：从零到一上手玩转云服务器</span>
+                            <span class="swiper-slide-link-view">59</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/859313">
+                            <span class="swiper-slide-link-num">6</span>
+                            <span class="swiper-slide-link-text">来更快的Maven了，我的天，速度提升了8倍！（1）</span>
+                            <span class="swiper-slide-link-view">56</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/859121">
+                            <span class="swiper-slide-link-num">7</span>
+                            <span class="swiper-slide-link-text">征文投稿丨使用轻量应用服务器搭建扫码测试项目</span>
+                            <span class="swiper-slide-link-view">77</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/859086">
+                            <span class="swiper-slide-link-num">8</span>
+                            <span class="swiper-slide-link-text">谈谈前端水印实现的几种方式</span>
+                            <span class="swiper-slide-link-view">65</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/859070">
+                            <span class="swiper-slide-link-num">9</span>
+                            <span class="swiper-slide-link-text">Datastream 开发打包问题</span>
+                            <span class="swiper-slide-link-view">69</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/859064">
+                            <span class="swiper-slide-link-num">10</span>
+                            <span class="swiper-slide-link-text">2021云上架构与运维峰会演讲合集</span>
+                            <span class="swiper-slide-link-view">72</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/859052">
+                            <span class="swiper-slide-link-num">11</span>
+                            <span class="swiper-slide-link-text">项目中如何优雅的消除if-else</span>
+                            <span class="swiper-slide-link-view">96</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/859020">
+                            <span class="swiper-slide-link-num">12</span>
+                            <span class="swiper-slide-link-text">零基础如何上手APICloud App、小程序多端开发</span>
+                            <span class="swiper-slide-link-view">53</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/858947">
+                            <span class="swiper-slide-link-num">13</span>
+                            <span class="swiper-slide-link-text">使用无影云当做自己的第二台电脑</span>
+                            <span class="swiper-slide-link-view">51</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/858925">
+                            <span class="swiper-slide-link-num">14</span>
+                            <span class="swiper-slide-link-text">初识阿里云E-MapReduce ClickHouse，到底有哪些优势？</span>
+                            <span class="swiper-slide-link-view">94</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/858924">
+                            <span class="swiper-slide-link-num">15</span>
+                            <span class="swiper-slide-link-text">自建Hadoop集群 VS 阿里云EMR，差距居然这么大？</span>
+                            <span class="swiper-slide-link-view">93</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/858923">
+                            <span class="swiper-slide-link-num">16</span>
+                            <span class="swiper-slide-link-text">阿里云EMR到底是什么？一图带你深入了解！</span>
+                            <span class="swiper-slide-link-view">95</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/858918">
+                            <span class="swiper-slide-link-num">17</span>
+                            <span class="swiper-slide-link-text">一图看懂 | 2021阿里云混合云的高能时刻</span>
+                            <span class="swiper-slide-link-view">87</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/858904">
+                            <span class="swiper-slide-link-num">18</span>
+                            <span class="swiper-slide-link-text">农民工玩转无影云电脑</span>
+                            <span class="swiper-slide-link-view">121</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/858899">
+                            <span class="swiper-slide-link-num">19</span>
+                            <span class="swiper-slide-link-text">“Haas物联网设备云端一体极客大赛”入选2021中国最受开发者欢迎技术活动</span>
+                            <span class="swiper-slide-link-view">73</span>
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a target="_blank" class="swiper-slide-link" href="https://developer.aliyun.com/article/858897">
+                            <span class="swiper-slide-link-num">20</span>
+                            <span class="swiper-slide-link-text">30人的产研团队如何高效协同？</span>
+                            <span class="swiper-slide-link-view">197</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-pagination swiper-new-rank-pagination"></div>
+        </div>
+    </div>
+</div>
+            <div class="right-item-box recommend-box">
+    <div class="right-item-title">
+        <div class="right-item-title-text">推荐文章</div>
+    </div>
+    <div class="recommend-list">
+        <a target="_blank" class="recommend-item" data-spm-click="gostr=/developer.publicity.space;locaid=d102020001;psid=group:query:1" href="https://developer.aliyun.com/special/mirror2021">镜像站体验官招募中，Airpods耳机等你来领！</a>
+        <a target="_blank" class="recommend-item" data-spm-click="gostr=/developer.publicity.space;locaid=d102020002;psid=group:query:303872355578411520" href="https://developer.aliyun.com/topic/wuying">”云上超级电脑、万元豪礼限时免费领取！</a>
+        <a target="_blank" class="recommend-item" data-spm-click="gostr=/developer.publicity.space;locaid=d102020003;psid=group:query:3" href="https://developer.aliyun.com/article/855928?utm_content=g_1000319298">免费下载《云原生时代下的App开发》</a>
+        <a target="_blank" class="recommend-item" data-spm-click="gostr=/developer.publicity.space;locaid=d102020004;psid=group:query:303872950330718721" href="https://developer.aliyun.com/topic/bloggers?utm_content=g_1000288847">乘风者计划邀您入驻社区，精彩权益即刻享</a>
+    </div>
+</div>
+            
+            
+            <div class="right-item-box ebook-box">
+    <div class="right-item-title">
+        <div class="right-item-title-text">相关电子书</div>
+        <a href="/ebook" target="_blank" class="right-item-title-link">更多</a>
+    </div>
+    <div class="right-module-ebook-container">
+        <div class="swiper-container swiper-ebook-container">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide active">
+                    <a target="_blank" href="https://developer.aliyun.com/topic/download?id=8269">
+                        <img src="https://ucc.alicdn.com/pic/developer-ecology/a55841009a784d84a42968d29f226281.png" />
+                    </a>
+                </div>
+                <div class="swiper-slide">
+                    <a target="_blank" href="https://developer.aliyun.com/topic/download?id=8268">
+                        <img src="https://ucc.alicdn.com/pic/developer-ecology/865cf02b0d3a41afaf992873c83f7264.jpg" />
+                    </a>
+                </div>
+                <div class="swiper-slide">
+                    <a target="_blank" href="https://developer.aliyun.com/topic/download?id=8272">
+                        <img src="https://ucc.alicdn.com/pic/developer-ecology/1460bbcf4a8746c7bac90d84ea4aa288.jpg" />
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="swiper-pagination swiper-ebook-pagination"></div>
+    </div>
+    <div class="ebook-info-list">
+        <div class="ebook-info-item active">
+            <div class="ebook-info-item-title">《2021云上架构与运维峰会演讲合集》</div>
+            <a class="ebook-info-item-btn" target="_blank" href="https://developer.aliyun.com/topic/download?id=8269">立即下载</a>
+        </div>
+        <div class="ebook-info-item">
+            <div class="ebook-info-item-title">《零基础CSS入门教程》</div>
+            <a class="ebook-info-item-btn" target="_blank" href="https://developer.aliyun.com/topic/download?id=8268">立即下载</a>
+        </div>
+        <div class="ebook-info-item">
+            <div class="ebook-info-item-title">《零基础HTML入门教程》</div>
+            <a class="ebook-info-item-btn" target="_blank" href="https://developer.aliyun.com/topic/download?id=8272">立即下载</a>
+        </div>
+    </div>
+</div>
+            <div class="right-item-nav" id="right-item-nav"></div>
+        </div>
+    </div>
+    
+</div>
+
+        <div data-role-footer="default"></div>
+        <script type="text/javascript" src="//g.alicdn.com/aliyun/static/0.0.11/??react.js,react-dom.js" nonce="a0e177bef8044025915e31b417d865b3"></script>
+        <script type="text/javascript" src="//alinw.alicdn.com/platform/c/jquery/1.11.3/dist/jquery.min.js" nonce="a0e177bef8044025915e31b417d865b3"></script>
+        <script defer="defer" src="//g.alicdn.com/aliyun/perf/js/index.js" nonce="a0e177bef8044025915e31b417d865b3"></script>
+        <script nonce="a0e177bef8044025915e31b417d865b3">
+            $(document).ready(function(){
+                window.ALIYUN_PERF.reportPerfWhenStatic();
+            });
+        </script>
+    
+
+<script src="/js/react.js" nonce="a0e177bef8044025915e31b417d865b3"></script>
+<script src="/js/react-dom.js" nonce="a0e177bef8044025915e31b417d865b3"></script>
+
+
+<script type="text/javascript" nonce="a0e177bef8044025915e31b417d865b3" src="//g.alicdn.com/aliyun/ucc-component-fe/0.2.5/??actionButtons.js,uccComment.js,commentsNum.js"></script>
+<script type="text/javascript" nonce="a0e177bef8044025915e31b417d865b3" src="//g.alicdn.com/aliyun/developer-aliyun-com-fe/2.3.0/scripts/??medalDialog.js,articleDetail.js,newDetailCommon.js,mathjax.js,weChatDisable.js,yuqueDocViewer.js"></script>
+
+
+<script nonce="a0e177bef8044025915e31b417d865b3">
+
+    let uc = new UccComment({
+        container: "#comment",
+        bizCategory: 'yq-comment-type-article',
+        objectId: GLOBAL_CONFIG.articleId,
+        subBizCategory: "yq-comment-reply-type-article",
+        actionBizCategory: "yq-vote-comment",
+        actionCode: "yq-vote-comment-like",
+        subActionBizCategory: "yq-vote-sub-comment",
+        subActionCode: "yq-vote-sub-comment-like",
+        sourceAppCode: "developer-ecology",
+        sourceBizCategory: "developer-ecology-group",
+        subLimit: 5
+    });
+    uc.render();
+</script>
+
+<script nonce="a0e177bef8044025915e31b417d865b3" src="https://ucc.aliyun.com/ucc/view/log?appCode=developer-ecology&amp;bizCategory=ucc-blog&amp;objectId=3&amp;nonce=a0e177bef8044025915e31b417d865b3"></script>
+
+
+
+<script type="text/javascript" src="/js/baidu_push.js" nonce="a0e177bef8044025915e31b417d865b3"></script>
+
+
+
+
+</body>
+
+
+</html>

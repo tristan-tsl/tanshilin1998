@@ -1,0 +1,148 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: project_name
+  name: project_name
+  namespace: namespace_name
+spec:
+  progressDeadlineSeconds: 300
+  replicas: replica_num
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: project_name
+  strategy:
+    rollingUpdate:
+      maxSurge: maxSurge_value
+      maxUnavailable: maxUnavailable_value
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: project_name
+        version: project_version
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: label_name
+                    operator: In
+                    values:
+                      - label_value
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - project_name
+                topologyKey: kubernetes.io/hostname
+              weight: 100
+      containers:
+        - image: registry.cn-shenzhen.aliyuncs.com/wjhbase/ilogtail-pre:latest
+          imagePullPolicy: Always
+          name: ilogtail
+          resources:
+            limits:
+              memory: 100M
+            requests:
+              memory: 100M
+          volumeMounts:
+            - mountPath: /mnt
+              name: logs-dir
+        - args:
+            - -config.file=/etc/promtail/config.yaml
+            - -config.expand-env=true
+          name: promtail
+          image: ctr-registry.local./ops/promtail:2.2.1
+          imagePullPolicy: Always
+          resources:
+            limits:
+              memory: 100M
+            requests:
+              memory: 100M
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: SERVICENAME
+              value: project_name
+            - name: PROJECTVERSION
+              value: project_version
+          volumeMounts:
+            - mountPath: /etc/localtime
+              name: date-config
+            - mountPath: /mnt
+              name: logs-dir
+            - mountPath: /etc/promtail/config.yaml
+              name: logging-loki-promtail-service-log
+              readOnly: true
+              subPath: config.yaml
+        - env:
+            - name: restart
+              value: restart_pod
+            - name: mxjvm
+              value: service_max_jvm
+            - name: msjvm
+              value: service_min_jvm
+          image: project_image_name
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 300
+            httpGet:
+              path: /ping
+              port: 80
+              scheme: HTTP
+            initialDelaySeconds: 140
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 2
+          name: project_name
+          readinessProbe:
+            failureThreshold: 20
+            httpGet:
+              path: /ping
+              port: 80
+              scheme: HTTP
+            initialDelaySeconds: 160
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 2
+          resources:
+            limits:
+              cpu: service_cpu
+              memory: service_memMi
+            requests:
+              cpu: 250m
+              memory: 512Mi
+          stdin: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          tty: true
+          volumeMounts:
+            - mountPath: /etc/localtime
+              name: date-config
+            - mountPath: /data/servicesLog/logs
+              name: logs-dir
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+        - name: auth-api
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - hostPath:
+            path: /etc/localtime
+          name: date-config
+        - emptyDir: {}
+          name: logs-dir
+        - configMap:
+            name: logging-loki-promtail-service-log
+          name: logging-loki-promtail-service-log

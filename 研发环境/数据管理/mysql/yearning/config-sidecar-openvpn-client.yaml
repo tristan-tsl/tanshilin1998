@@ -1,0 +1,10 @@
+---
+# loki
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sidecar-openvpn-client
+  namespace: devops
+data:
+  client.conf: |
+    client

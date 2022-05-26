@@ -1,0 +1,72 @@
+---
+# 配置文件
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dingding-webhook
+  namespace: monitoring
+data:
+  config.yml: |
+    targets:
+      webhook1:
+        url: https://oapi.dingtalk.com/robot/send?access_token=
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dingding-webhook
+  namespace: monitoring
+  labels:
+    app: dingding-webhook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dingding-webhook
+  template:
+    metadata:
+      labels:
+        app: dingding-webhook
+    spec:
+      containers:
+      - name: dingding-webhook
+        image: timonwong/prometheus-webhook-dingtalk:v1.4.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8060
+        volumeMounts:
+          - mountPath: /prometheus-webhook-dingtalk/configs
+            name: dingding-webhook
+        args:
+          - --config.file=/prometheus-webhook-dingtalk/configs/config.yml
+          - --log.level=debug
+        resources:
+          requests:
+            cpu: 50m
+            memory: 0.1Gi
+            ephemeral-storage: 1Gi
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+            ephemeral-storage: 30Gi
+      volumes:
+        - name: dingding-webhook
+          configMap:
+            name: dingding-webhook
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: dingding-webhook
+  name: dingding-webhook
+  namespace: monitoring
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8060
+  selector:
+    app: dingding-webhook

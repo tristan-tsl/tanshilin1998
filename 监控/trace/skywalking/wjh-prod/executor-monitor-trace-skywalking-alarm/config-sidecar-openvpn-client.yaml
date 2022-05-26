@@ -1,0 +1,9 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sidecar-openvpn-executor-monitor-trace-skywalking-alarm
+  namespace: wjh-prod
+data:
+  client.conf: |
+    client

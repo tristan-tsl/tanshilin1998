@@ -1,0 +1,140 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: clickhouse-keeper-2
+  labels:
+    clickhouse-keeper/service: "all"
+    clickhouse-keeper/shard: "2"
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: tcp
+      port: 9181
+      targetPort: tcp
+    - name: raft
+      port: 9234
+      targetPort: raft
+    - name: metrics
+      port: 9363
+      targetPort: metrics
+  selector:
+    clickhouse-keeper/service: "all"
+    clickhouse-keeper/shard: "2"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: clickhouse-keeper-2
+  labels:
+    clickhouse-keeper/service: "all"
+    clickhouse-keeper/shard: "2"
+data:
+  config.yaml: |
+    keeper_server:
+      tcp_port: 9181
+      server_id: 2
+      log_storage_path: /var/lib/clickhouse/coordination/log
+      snapshot_storage_path: /var/lib/clickhouse/coordination/snapshots
+      coordination_settings:
+        operation_timeout_ms: 5000
+        session_timeout_ms: 10000
+        snapshot_distance: 75
+        raft_logs_level: trace
+      raft_configuration:
+        - server:
+            id: 0
+            hostname: clickhouse-keeper-0
+            port: 9234
+        - server:
+            id: 1
+            hostname: clickhouse-keeper-1
+            port: 9234
+        - server:
+            id: 2
+            hostname: clickhouse-keeper-2
+            port: 9234
+    listen_host: 0.0.0.0
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    clickhouse-keeper/service: "all"
+    clickhouse-keeper/shard: "2"
+  name: clickhouse-keeper-2
+spec:
+  serviceName: clickhouse-keeper-2
+  replicas: 1
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      clickhouse-keeper/service: "all"
+      clickhouse-keeper/shard: "2"
+  template:
+    metadata:
+      labels:
+        clickhouse-keeper/service: "all"
+        clickhouse-keeper/shard: "2"
+    spec:
+      nodeSelector:
+        "clickhouse-keeper": "true"
+      containers:
+      - image: clickhouse/clickhouse-server:22.3.2.2
+        env:
+          - name: TZ
+            value: Asia/Shanghai
+        command:
+          - sh
+          - -c
+          - "clickhouse-keeper --config /etc/clickhouse-server/config.yaml"
+        imagePullPolicy: IfNotPresent
+        name: clickhouse
+        ports:
+        - containerPort: 9181
+          name: tcp
+          protocol: TCP
+        - containerPort: 9234
+          name: raft
+          protocol: TCP
+        - containerPort: 9363
+          name: metrics
+          protocol: TCP
+        resources:
+          requests:
+            cpu: "7"
+            memory: 13Gi
+#            ephemeral-storage: 1Gi
+          limits:
+            cpu: "7"
+            memory: 13Gi
+#            ephemeral-storage: 10Gi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/lib/clickhouse/coordination
+          name: data-0
+        - mountPath: /etc/clickhouse-server/
+          name: config
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30 # 临时调试时使用30s下线
+      volumes:
+        - name: config
+          configMap:
+            name: clickhouse-keeper-2
+  volumeClaimTemplates:
+    - metadata:
+        name: data-0
+      spec:
+        accessModes:
+          - ReadWriteOnce
+#        storageClassName: cbs-csi-topo-prepaid
+        storageClassName: cbs-mw
+        resources:
+          requests:
+            storage: "100Gi"

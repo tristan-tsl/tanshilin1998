@@ -1,0 +1,27 @@
+---
+# loki
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logging-loki-promtail-service-log
+  namespace: wjh-pre
+data:
+  config.yaml: |
+    server:
+        disable: true
+    positions:
+        filename: /promtail-positions.yaml
+    clients:
+        - url: http://loki.logging./loki/api/v1/push
+    scrape_configs:
+      - job_name: logging-loki-promtail-service-log
+        static_configs:
+        - targets:
+            - localhost
+          labels:
+            job: service_log
+            __path__: /mnt/**/*.log
+            environment: ${NAMESPACE}
+            replicaset: ${SERVICENAME}
+            pod: ${HOSTNAME}
+            rcversion: ${PROJECTVERSION}

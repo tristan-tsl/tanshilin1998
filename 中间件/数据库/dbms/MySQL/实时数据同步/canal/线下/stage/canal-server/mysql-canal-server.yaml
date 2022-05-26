@@ -1,0 +1,98 @@
+---
+# 服务
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-canal-server
+  namespace: stage
+  labels:
+    app: mysql-canal-server
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mysql-canal-server
+  template:
+    metadata:
+      labels:
+        app: mysql-canal-server
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: mysql-canal-server
+          image: ctr-registry.local./ops/canal-server:v1.1.5
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 2222
+            - containerPort: 11110
+            - containerPort: 11111
+            - containerPort: 8000
+            - containerPort: 11112
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+            - name: canal.admin.manager
+              value: mysql-canal-admin:80
+            - name: canal.admin.port
+              value: "11110"
+            - name: canal.admin.user
+              value: admin
+            - name: canal.admin.passwd
+              value: "baef30d3487827e14e6a9e10b4c1cd0cf1e6fdb9"
+            - name: canal.admin.register.cluster
+              value: stage
+            - name: restart
+              value: "fsdfsdfsdf"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: 9000m
+              memory: 5000Mi
+              ephemeral-storage: 100Gi
+          volumeMounts:
+            - mountPath: /home/admin/canal-server/logs
+              name: logs-dir
+        - name: promtail
+          image: ctr-registry.local./ops/promtail:2.2.1
+          imagePullPolicy: IfNotPresent
+          args:
+            - -config.file=/etc/promtail/config.yaml
+            - -config.expand-env=true
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+            - name: ENVIRONMENT_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: REPLICASET_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - mountPath: /mnt
+              name: logs-dir
+            - mountPath: /etc/promtail
+              name: promtail-config
+          resources:
+            requests:
+              cpu: 50m
+              memory: 0.05Gi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: 500m
+              memory: 0.5Gi
+              ephemeral-storage: 10Gi
+      volumes:
+        - name: logs-dir
+          emptyDir: {}
+        - name: promtail-config
+          configMap:
+            name: loki-promtail-middleware

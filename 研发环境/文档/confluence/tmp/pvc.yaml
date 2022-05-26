@@ -1,0 +1,127 @@
+# rm -rf /k8slpv/doc-confluence && mkdir -p /k8slpv/doc-confluence && chmod 777 /k8slpv/doc-confluence
+# rm -rf /k8slpv/doc-confluence-mysql && mkdir -p /k8slpv/doc-confluence-mysql && chmod 777 /k8slpv/doc-confluence-mysql
+# rm -rf /k8slpv/doc-confluence-patch && mkdir -p /k8slpv/doc-confluence-patch && chmod 777 /k8slpv/doc-confluence-patch
+---
+# 存储
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: doc-confluence
+  namespace: doc
+spec:
+  capacity:
+    storage: 100Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /k8slpv/doc-confluence
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - 192.168.90.16
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: confluence
+  namespace: doc
+spec:
+  storageClassName: local-storage
+  volumeName: doc-confluence
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+
+---
+# 存储
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: doc-confluence-mysql
+  namespace: doc
+spec:
+  capacity:
+    storage: 100Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /k8slpv/doc-confluence-mysql
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - 192.168.90.16
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: confluence-mysql
+  namespace: doc
+spec:
+  storageClassName: local-storage
+  volumeName: doc-confluence-mysql
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+
+
+---
+# 存储
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: doc-confluence-patch
+  namespace: doc
+spec:
+  capacity:
+    storage: 100Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /k8slpv/doc-confluence-patch
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - 192.168.90.16
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: confluence-patch
+  namespace: doc
+spec:
+  storageClassName: local-storage
+  volumeName: doc-confluence-patch
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi

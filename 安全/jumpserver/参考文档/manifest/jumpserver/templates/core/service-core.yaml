@@ -1,0 +1,34 @@
+---
+# Source: jumpserver/templates/core/service-core.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: jumpserver-jms-core
+  labels:
+    app.kubernetes.io/name: jumpserver
+    helm.sh/chart: jumpserver-0.1.0
+    app.kubernetes.io/instance: jumpserver
+    app.kubernetes.io/version: "v2.15.4"
+    app.kubernetes.io/managed-by: Helm
+    app.jumpserver.org/name: jms-core
+  annotations:
+    null
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: web
+      protocol: TCP
+      name: web
+    - port: 8070
+      targetPort: ws
+      protocol: TCP
+      name: ws
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+  selector:
+    app.kubernetes.io/name: jumpserver
+    app.kubernetes.io/instance: jumpserver
+    app.jumpserver.org/name: jms-core

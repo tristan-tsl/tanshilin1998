@@ -1,0 +1,31 @@
+---
+# Source: jumpserver/templates/web/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jumpserver
+  labels:
+    app.kubernetes.io/name: jumpserver
+    helm.sh/chart: jumpserver-0.1.0
+    app.kubernetes.io/instance: jumpserver
+    app.kubernetes.io/version: "v2.15.4"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    compute-full-forwarded-for: "true"
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header Upgrade "websocket";
+      proxy_set_header Connection "Upgrade";
+    use-forwarded-headers: "true"
+spec:
+  rules:
+    - host: jumpserver-security.local.
+      http:
+        paths:
+        - pathType: Prefix
+          path: /
+          backend:
+            service:
+              name: 'jumpserver-jms-web'
+              port:
+                number: 80

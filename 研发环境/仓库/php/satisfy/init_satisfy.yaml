@@ -1,0 +1,50 @@
+---
+# 从镜像中读取配置文件写入到挂载目录中以完成首次初始化配置文件
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: init-satisfy
+  namespace: registry
+spec:
+  template:
+    spec:
+      containers:
+        - name: init-composer
+          image: ypereirareis/docker-satis:3.3.0-debian-buster-php74
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - "\\cp -rpf /var/www/.composer/* /mnt/"
+          volumeMounts:
+            - mountPath: /mnt
+              name: satisfy
+              subPath: composer
+        - name: init-config
+          image: ypereirareis/docker-satis:3.3.0-debian-buster-php74
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - "\\cp -rpf /satisfy/config_tmp/* /mnt/"
+          volumeMounts:
+            - mountPath: /mnt
+              name: satisfy
+              subPath: config
+#        - name: init-config-edit
+#          image: centos:centos7
+#          imagePullPolicy: IfNotPresent
+#          command:
+#            - sh
+#            - -c
+#            - "sleep 99999"
+#          volumeMounts:
+#            - mountPath: /mnt
+#              name: satisfy
+#              subPath: config
+      restartPolicy: Never
+      volumes:
+        - name: satisfy
+          persistentVolumeClaim:
+            claimName: satisfy
+  backoffLimit: 2

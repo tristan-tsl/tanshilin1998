@@ -1,0 +1,24 @@
+---
+# 从镜像中读取配置文件写入到挂载目录中以完成首次初始化配置文件
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: first-init-mysql-canal-config-files
+  namespace: dev
+spec:
+  template:
+    spec:
+      containers:
+        - name: first-init-canal-config-files
+          image: ctr-registry.local./ops/canal-admin:v1.1.5
+          imagePullPolicy: IfNotPresent
+          command: [ "sh", "-c", "cp -r /home/admin/canal-admin/* /mnt/"]
+          volumeMounts:
+            - mountPath: /mnt
+              name: mysql-canal
+      restartPolicy: Never
+      volumes:
+        - name: mysql-canal
+          persistentVolumeClaim:
+            claimName: mysql-canal
+  backoffLimit: 1

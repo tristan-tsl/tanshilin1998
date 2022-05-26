@@ -1,0 +1,40 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app.kubernetes.io/name: redis
+    prometheus: k8s
+    role: alert-rules
+  name: redis-rules
+  namespace: monitoring
+spec:
+  groups:
+  - name: redis.rules
+    rules:
+    - alert: RedisDown
+      annotations:
+        description: Redis instance is down {{ $labels }}
+        summary: Redis down
+      expr: |
+        redis_up == 0
+      for: 5m
+      labels:
+        severity: critical
+#    - alert: RedisOutOfMemory
+#      annotations:
+#        description: Redis is running out of memory {{ $labels }}({{ $value }})
+#        summary: Redis out of memory
+#      expr: |
+#        redis_memory_used_bytes / redis_total_system_memory_bytes * 100 > 90
+#      for: 5m
+#      labels:
+#        severity: critical
+#    - alert: RedisTooManyConnections
+#      annotations:
+#        description: Redis instance has too many connections {{ $labels }}({{ $value }})
+#        summary: Redis too many connections
+#      expr: |
+#        redis_connected_clients > 100
+#      for: 5m
+#      labels:
+#        severity: critical

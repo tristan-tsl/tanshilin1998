@@ -1,0 +1,79 @@
+---
+# 服务
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-exporter
+  namespace: stage
+  labels:
+    app.kubernetes.io/name: redis-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis-exporter
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: redis-exporter
+    spec:
+      containers:
+      - name: redis-exporter
+        image: oliver006/redis_exporter:v1.27.1
+        ports:
+        - containerPort: 9121
+          name: http
+        args:
+          - --redis.addr=redis://redis:80
+#        livenessProbe:
+#          httpGet:
+#            path: /health
+#            port: 9108
+#          initialDelaySeconds: 30
+#          timeoutSeconds: 10
+        env:
+          - name: TZ
+            value: Asia/Shanghai
+          - name: REDIS_ADDR
+            value: redis://redis
+        resources:
+          requests:
+            cpu: 25m
+            memory: 64Mi
+            ephemeral-storage: 0.1Gi
+          limits:
+            cpu: 500m
+            memory: 1000Mi
+            ephemeral-storage: 0.1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: redis-exporter
+  name: redis-exporter
+  namespace: stage
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+  selector:
+    app.kubernetes.io/name: redis-exporter
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/name: redis-exporter
+  name: redis-exporter
+  namespace: stage
+spec:
+  endpoints:
+  - interval: 15s
+    port: http
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis-exporter
+

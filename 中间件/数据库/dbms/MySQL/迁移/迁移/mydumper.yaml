@@ -1,0 +1,45 @@
+---
+# 服务
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mydumper
+  namespace: dev
+  labels:
+    app: mydumper
+spec:
+  serviceName: mydumper
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mydumper
+  template:
+    metadata:
+      labels:
+        app: mydumper
+    spec:
+      nodeSelector:
+        "kubernetes.io/hostname": "192.168.90.20"
+      containers:
+      - name: mydumper
+#        image: ctr-registry.local./ops/mysql:8.0.26
+        image: ctr-registry.local./ops/mydumper:0.11.3
+        command:
+          - sh
+          - -c
+          - "tail -f /dev/null"
+        workingDir: /data
+        env:
+          - name: TZ
+            value: Asia/Shanghai
+        resources:
+          requests:
+            cpu: 100m
+            memory: 0.1Gi
+            ephemeral-storage: 0.1Gi
+          limits:
+            cpu: 20000m
+            memory: 20Gi
+            ephemeral-storage: 300Gi
+      imagePullSecrets:
+        - name: regcred

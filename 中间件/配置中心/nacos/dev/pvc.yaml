@@ -1,0 +1,14 @@
+---
+# 存储 for nacos-mysql
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nacos-mysql
+  namespace: dev
+spec:
+  storageClassName: rook-ceph-block
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi

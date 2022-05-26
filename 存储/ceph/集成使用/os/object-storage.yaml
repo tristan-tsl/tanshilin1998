@@ -1,0 +1,83 @@
+---
+apiVersion: ceph.rook.io/v1
+kind: CephObjectStore
+metadata:
+  name: gyl-dev-oss
+  namespace: rook-ceph
+spec:
+  metadataPool:
+    failureDomain: host
+    replicated:
+      size: 3
+  dataPool:
+    failureDomain: host
+    erasureCoded:
+      dataChunks: 2
+      codingChunks: 1
+  preservePoolsOnDelete: true
+  gateway:
+    sslCertificateRef:
+    port: 80
+    # securePort: 443
+    instances: 1
+  healthCheck:
+    bucket:
+      disabled: true
+      interval: 60s
+
+# kubectl -n rook-ceph get svc -l app=rook-ceph-rgw
+---
+# bucket
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gyl-dev-oss
+provisioner: rook-ceph.ceph.rook.io/bucket
+parameters:
+  objectStoreName: gyl-dev-oss
+  objectStoreNamespace: rook-ceph
+  region: us-east-1
+allowVolumeExpansion: true
+reclaimPolicy: Retain
+---
+# bucket
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: ceph-bucket
+spec:
+  generateBucketName: gyl-dev-oss
+  storageClassName: gyl-dev-oss
+---
+# user
+apiVersion: ceph.rook.io/v1
+kind: CephObjectStoreUser
+metadata:
+  name: gyl-dev-oss
+  namespace: rook-ceph
+spec:
+  store: gyl-dev-oss
+  displayName: "gyl-dev-oss"
+---
+# 外部域名
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gyl-dev-oss
+  namespace: rook-ceph
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+spec:
+  rules:
+    - host: gyl-dev-oss.dev.local.
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: rook-ceph-rgw-gyl-dev-oss
+                port:
+                  number: 80

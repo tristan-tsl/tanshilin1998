@@ -1,0 +1,64 @@
+---
+# 服务
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: executor-sync-polardb-slow-log
+  namespace: wjh-prod
+  labels:
+    app: executor-sync-polardb-slow-log
+spec:
+  serviceName: executor-sync-polardb-slow-log
+  replicas: 1
+  selector:
+    matchLabels:
+      app: executor-sync-polardb-slow-log
+  template:
+    metadata:
+      labels:
+        app: executor-sync-polardb-slow-log
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: sidecar-openvpn-client
+          image: ctr-registry.local./ops/laashubsoa-sidecar-openvpn-client:0.0.1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - mountPath: /etc/openvpn/client
+              name: sidecar-openvpn-client
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: 5000m
+              memory: 5000Mi
+              ephemeral-storage: 10Gi
+        - name: executor-sync-polardb-slow-log
+          image: ctr-registry.local./ops/executor-sync-polardb-slow-log:0.0.13
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: 5000m
+              memory: 5000Mi
+              ephemeral-storage: 10Gi
+          volumeMounts:
+            - mountPath: /usr/src/app/configs
+              name: executor-sync-polardb-slow-log-application-conf
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+      volumes:
+        - name: sidecar-openvpn-client
+          configMap:
+            name: sidecar-openvpn-client-executor-sync-polardb-slow-log
+        - name: executor-sync-polardb-slow-log-application-conf
+          configMap:
+            name: executor-sync-polardb-slow-log

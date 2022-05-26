@@ -1,0 +1,73 @@
+---
+# 内部域名
+apiVersion: v1
+kind: Service
+metadata:
+  name: rocketmq
+  namespace: dev
+spec:
+  selector:
+    app: rocketmq
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 9876
+      nodePort: 31704
+  type: LoadBalancer
+---
+# 服务
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rocketmq
+  namespace: dev
+  labels:
+    app: rocketmq
+spec:
+  serviceName: rocketmq
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rocketmq
+  template:
+    metadata:
+      labels:
+        app: rocketmq
+    spec:
+      containers:
+        - name: rocketmq
+          image: ctr-registry.local./ops/rocketmq:4.9.1
+          ports:
+            - containerPort: 9876
+          command:
+            - sh
+            - -c
+#            - "sleep 9999"
+            - "${ROCKETMQ_HOME}/bin/mqnamesrv"
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+#          volumeMounts:
+#            - mountPath: /home/rocketmq/logs
+#              name: rocketmq
+          resources:
+            requests:
+              cpu: 1000m
+              memory: 1Gi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: 5000m
+              memory: 5Gi
+              ephemeral-storage: 100Gi
+      imagePullSecrets:
+        - name: regcred
+#  volumeClaimTemplates:
+#    - metadata:
+#        name: rocketmq
+#      spec:
+#        storageClassName: rook-ceph-block
+#        accessModes:
+#          - ReadWriteOnce
+#        resources:
+#          requests:
+#            storage: 100Gi

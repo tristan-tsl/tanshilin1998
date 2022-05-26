@@ -1,0 +1,110 @@
+---
+# 外部域名
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: satisfy
+  namespace: registry
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/proxy-buffering: "on"
+    nginx.ingress.kubernetes.io/client-body-buffer-size: 100m
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "800k"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "400"
+spec:
+  rules:
+    - host: satisfy-php-registry.local.
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: satisfy
+                port:
+                  number: 80
+---
+# 内部域名
+apiVersion: v1
+kind: Service
+metadata:
+  name: satisfy
+  namespace: registry
+spec:
+  selector:
+    app: satisfy
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+# 服务
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: satisfy
+  namespace: registry
+  labels:
+    app: satisfy
+spec:
+  serviceName: satisfy
+  replicas: 1
+  selector:
+    matchLabels:
+      app: satisfy
+  template:
+    metadata:
+      labels:
+        app: satisfy
+    spec:
+      hostAliases:
+        - hostnames:
+            - git.wjh.com
+          ip: 192.168.90.190
+      containers:
+        - name: satisfy
+          image: ypereirareis/docker-satis:3.3.0-debian-buster-php74
+          imagePullPolicy: IfNotPresent
+#          command:
+#            - sh
+#            - -c
+#            - "sleep 9999"
+          ports:
+            - containerPort: 80
+          #        livenessProbe:
+          #          tcpSocket:
+          #            port: 8080
+          #          failureThreshold: 10
+          #          periodSeconds: 60
+          #          initialDelaySeconds: 10
+          volumeMounts:
+            - mountPath: /var/www/.composer
+              name: satisfy
+              subPath: composer
+            - mountPath: /satisfy/config_tmp
+              name: satisfy
+              subPath: config
+            - mountPath: /var/tmp
+              name: satisfy
+              subPath: tmp
+#            - mountPath: /backup
+#              name: satisfy-old
+          resources:
+            requests:
+              cpu: 100m
+              memory: 0.1Gi
+              ephemeral-storage: 10Gi
+            limits:
+              cpu: 10000m
+              memory: 9Gi
+              ephemeral-storage: 10Gi
+      volumes:
+        - name: satisfy
+          persistentVolumeClaim:
+            claimName: satisfy
+#        - name: satisfy-old
+#          persistentVolumeClaim:
+#            claimName: satisfy-old

@@ -1,0 +1,67 @@
+---
+# 服务
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: executor-monitor-trace-skywalking-alarm
+  namespace: wjh-prod
+  labels:
+    app: executor-monitor-trace-skywalking-alarm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: executor-monitor-trace-skywalking-alarm
+  template:
+    metadata:
+      labels:
+        app: executor-monitor-trace-skywalking-alarm
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: sidecar-openvpn-client
+          image: ctr-registry.local./ops/laashubsoa-sidecar-openvpn-client:0.0.1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - mountPath: /etc/openvpn/client
+              name: sidecar-openvpn-client
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: 5000m
+              memory: 5000Mi
+              ephemeral-storage: 10Gi
+        - name: executor-monitor-trace-skywalking-alarm
+          image: ctr-registry.local./ops/executor-monitor-trace-skywalking-alarm:0.0.5
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: 5000m
+              memory: 5000Mi
+              ephemeral-storage: 10Gi
+          volumeMounts:
+            - mountPath: /usr/src/app/configs
+              name: conf-executor-monitor-trace-skywalking-alarm
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+            - name: restart
+              value: "1"
+      volumes:
+        - name: conf-executor-monitor-trace-skywalking-alarm
+          configMap:
+            name: executor-monitor-trace-skywalking-alarm
+        - name: sidecar-openvpn-client
+          configMap:
+            name: sidecar-openvpn-executor-monitor-trace-skywalking-alarm
+      imagePullSecrets:
+        - name: regcred

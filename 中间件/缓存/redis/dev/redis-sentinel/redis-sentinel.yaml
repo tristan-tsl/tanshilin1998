@@ -1,0 +1,96 @@
+---
+# 配置文件
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-sentinel
+  namespace: dev
+data:
+  redis.conf: |
+    bind 0.0.0.0
+    port 6379
+    protected-mode no
+    sentinel monitor mymaster 192.168.90.21 31887 1
+    sentinel down-after-milliseconds mymaster 10000
+    sentinel parallel-syncs mymaster 1
+    sentinel failover-timeout mymaster 60000
+    sentinel resolve-hostnames yes
+---
+# 内部域名
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-sentinel
+  namespace: dev
+spec:
+  selector:
+    app: redis-sentinel
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 6379
+---
+# 服务
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-sentinel
+  namespace: dev
+  labels:
+    app: redis-sentinel
+spec:
+#  serviceName: redis-sentinel
+  replicas: 3
+  selector:
+    matchLabels:
+      app: redis-sentinel
+  template:
+    metadata:
+      labels:
+        app: redis-sentinel
+    spec:
+      initContainers:
+        - name: setsysctl
+          command:
+            - sh
+            - -c
+            - echo 20000 > /proc/sys/net/core/somaxconn
+          image: busybox:1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+      containers:
+        - name: redis
+          image: ctr-registry.local./ops/redis:6.2.6
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - "cp /usr/local/etc/redis/redis.conf /usr/local/etc/redis-sentinel.conf && redis-server /usr/local/etc/redis-sentinel.conf --sentinel"
+          ports:
+            - containerPort: 6379
+          #        livenessProbe:
+          #          tcpSocket:
+          #            port: 6379
+          #          failureThreshold: 10
+          #          periodSeconds: 60
+          #          initialDelaySeconds: 10
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+          volumeMounts:
+            - mountPath: /usr/local/etc/redis
+              name: conf-redis-sentinel
+          resources:
+            requests:
+              cpu: 100m
+              memory: 0.1Gi
+              ephemeral-storage: 10Gi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+              ephemeral-storage: 10Gi
+      volumes:
+        - name: conf-redis-sentinel
+          configMap:
+            name: redis-sentinel

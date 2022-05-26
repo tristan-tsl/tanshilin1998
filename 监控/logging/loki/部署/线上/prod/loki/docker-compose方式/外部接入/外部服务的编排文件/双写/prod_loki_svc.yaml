@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: project_name
+  name: project_name
+  namespace: namespace_name
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 80
+    - name: http1
+      port: 1234
+      protocol: TCP
+      targetPort: 1234
+  selector:
+    app: project_name

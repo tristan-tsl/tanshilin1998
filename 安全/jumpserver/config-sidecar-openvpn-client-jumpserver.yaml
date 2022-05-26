@@ -1,0 +1,11 @@
+---
+# loki
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sidecar-openvpn-client-jumpserver
+  namespace: security
+data:
+  client.conf: |
+    client
+

@@ -1,0 +1,26 @@
+# mkdir -p /k8slpv/dev-nacos-mysql && chmod 777 /k8slpv/dev-nacos-mysql
+---
+# 存储
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: dev-nacos-mysql
+  namespace: dev
+spec:
+  capacity:
+    storage: 100Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /k8slpv/dev-nacos-mysql
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - 192.168.90.16

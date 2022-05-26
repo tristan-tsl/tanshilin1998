@@ -1,0 +1,141 @@
+---
+# Source: metersphere/templates/03-modules/metersphere-server.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: metersphere-server
+  namespace: devops-test-ms
+  labels:
+    app: metersphere-server
+spec:
+  sessionAffinity: ClientIP
+  selector:
+    app: metersphere-server
+  ports:
+    - name: http
+      port: 8081
+      protocol: TCP
+---
+# Source: metersphere/templates/03-modules/metersphere-server.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: metersphere-server
+  namespace: devops-test-ms
+spec:
+  serviceName: metersphere-server
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metersphere-server
+  template:
+    metadata:
+      labels:
+        app: metersphere-server
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - metersphere-server
+              topologyKey: kubernetes.io/hostname
+      initContainers:
+        - name: wait-mysql
+          image: busybox:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              set -ex
+              until nc -zv metersphere-mysql 3306; do sleep 5; done
+              sleep 10
+      containers:
+        - name: metersphere-server
+          image: ctr-registry.local./ops/metersphere:v1.10
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: 300Mi
+              cpu: 100m
+            limits:
+              memory: 6000Mi
+              cpu: 5000m
+          ports:
+            - name: http
+              containerPort: 8081
+          volumeMounts:
+            - mountPath: /opt/metersphere/conf
+              name: opt-metersphere-config
+            - mountPath: /opt/metersphere/logs
+              name: metersphere-logs
+          livenessProbe:
+            tcpSocket:
+              port: 8081
+            failureThreshold: 12
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 1
+          readinessProbe:
+            tcpSocket:
+              port: 8081
+            failureThreshold: 12
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 1
+#        - name: promtail
+#          image: ctr-registry.local./ops/promtail:2.2.1
+#          imagePullPolicy: IfNotPresent
+#          args:
+#            - -config.file=/etc/promtail/config.yaml
+#            - -config.expand-env=true
+#          env:
+#            - name: TZ
+#              value: Asia/Shanghai
+#            - name: ENVIRONMENT_NAME
+#              valueFrom:
+#                fieldRef:
+#                  fieldPath: metadata.namespace
+#            - name: REPLICASET_NAME
+#              valueFrom:
+#                fieldRef:
+#                  fieldPath: metadata.labels['app']
+#            - name: POD_NAME
+#              valueFrom:
+#                fieldRef:
+#                  fieldPath: metadata.name
+#          volumeMounts:
+#            - mountPath: /mnt
+#              name: metersphere-logs
+#            - mountPath: /etc/promtail
+#              name: promtail-config
+#          resources:
+#            requests:
+#              cpu: 50m
+#              memory: 0.05Gi
+#              ephemeral-storage: 1Gi
+#            limits:
+#              cpu: 500m
+#              memory: 0.5Gi
+#              ephemeral-storage: 10Gi
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: metersphere-config
+            items:
+            - key: metersphere.properties
+              path: metersphere.properties
+          name: opt-metersphere-config
+        - name: metersphere-logs
+          emptyDir: {}
+#        - name: promtail-config
+#          configMap:
+#            name: loki-promtail
